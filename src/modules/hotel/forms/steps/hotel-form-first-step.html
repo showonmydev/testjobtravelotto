@@ -1,0 +1,282 @@
+<link rel="import" href="../../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../../../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../../../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../../../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../../../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../../../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../../../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../../../../bower_components/paper-checkbox/paper-checkbox.html">
+
+
+<link rel="import" href="../../../../components/biness-ajax-button.html">
+<link rel="import" href="../../../../components/biness-shady-input.html">
+<link rel="import" href="../../../../components/biness-form.html">
+<link rel="import" href="../../../../shared-styles.html">
+
+<dom-module id="hotel-form-first-step">
+    <template>
+        <style
+            include="shared-styles
+                iron-flex-factors
+                biness-shady-input
+                iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                
+            }
+        </style>
+
+        <section>
+            <iron-form id="form">
+                <form method="get" action="#">
+                    <h1 class="form-title">Basic Information</h1>
+                    <form-group cols="3">
+                        <!-- Property Name -->
+                        <paper-input
+                            label="Property Name:* (English)"
+                            required 
+                            type="text"
+                            value="{{data.name}}"
+                            error-message="Property name is required"
+                            name="name">
+                        </paper-input>
+
+                        <!-- Property Name Local -->
+                        <paper-input
+                            label="Property Name (Local)"
+                            type="text"
+                            value="{{data.name_local}}"
+                            name="name_local">
+                        </paper-input>
+
+                        <!-- Property Type -->
+                        <paper-dropdown-menu 
+                            label="Property Type:*"
+                            error-message="please Select the space type"
+                            required>
+                            <paper-listbox 
+                                slot="dropdown-content" 
+                                selected="{{data.property_type}}"
+                                attr-for-selected="name"
+                                class="dropdown-content">
+                                <template is="dom-repeat" items="[[resources.property_types]]">
+                                    <paper-item name="[[item.id]]">[[item.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </form-group>
+
+                    <form-group cols="2">
+
+                        <paper-dropdown-menu 
+                            label="Prefered Language:*"
+                            error-message="please Select the space type"
+                            required>
+                            <paper-listbox 
+                                slot="dropdown-content" 
+                                selected="{{data.lang}}"
+                                attr-for-selected="name"
+                                class="dropdown-content">
+                                <template is="dom-repeat" items="[[resources.languages]]">
+                                    <paper-item name="[[item.key]]">[[item.name]] ([[item.native]])</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+
+
+                         <!-- Currency -->
+                        <paper-dropdown-menu 
+                            label="Prefered Currency:*">
+                            <paper-listbox 
+                                slot="dropdown-content" 
+                                selected="{{data.currency}}"
+                                attr-for-selected="name"
+                                class="dropdown-content">
+                                <!-- <template is="dom-repeat" items="[[resources.languages]]">
+                                    <paper-item name="[[item]]">[[item.name]] ([[item.native]])</paper-item>
+                                </template> -->
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </form-group>
+                    
+                    <form-group cols="2">
+
+                        <!-- Depost type Type -->
+                        <paper-dropdown-menu 
+                            label="Deposit / Comission:*"
+                            error-message="This field is required"
+                            required>
+                            <paper-listbox 
+                                slot="dropdown-content" 
+                                selected="{{data.deposit_type}}"
+                                attr-for-selected="name"
+                                class="dropdown-content">
+                                
+                                <paper-item name="PERCENTAGE">Percentage</paper-item>
+                                <paper-item name="FIXED">Fixed</paper-item>
+
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+
+                        <!-- Deposit Value -->
+                        <paper-input
+                            label="Value:*"
+                            type="number"
+                            required
+                            min="0"
+                            value="{{data.deposit_value}}"
+                            error-message="This field is required"
+                            name="name_local">
+                        </paper-input>
+                    </form-group>
+
+                    <form-group cols="2">
+
+                        <!-- Number of rooms -->
+                        <paper-input
+                            label="Number of Rooms:*"
+                            type="number"
+                            required
+                            min="0"
+                            value="{{data.rooms}}"
+                            error-message="Please enter Number of rooms"
+                            name="name_local">
+                        </paper-input>
+
+                        <!-- Rating -->
+                        <paper-dropdown-menu 
+                            label="Rating:"
+                            error-message="This field is required"
+                            required>
+                            <paper-listbox 
+                                slot="dropdown-content" 
+                                selected="{{data.rating}}"
+                                attr-for-selected="name"
+                                class="dropdown-content">
+                                
+                                <paper-item name="">0</paper-item>
+                                <paper-item name="1">1</paper-item>
+                                <paper-item name="2">2</paper-item>
+                                <paper-item name="3">3</paper-item>
+                                <paper-item name="4">4</paper-item>
+                                <paper-item name="5">5</paper-item>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+                    </form-group>
+
+                    <form-group cols="2">
+                        <!-- Number of bookings per month -->
+                        <paper-input
+                            label="Average No. of bookings per month:*"
+                            required 
+                            min="0"
+                            type="number"
+                            value="{{data.bookings_per_month}}"
+                            error-message="Property name is required">
+                        </paper-input>
+                    </form-group>
+                    <form-group cols="1">
+                        <paper-input
+                            label="License Number:"
+                            type="text"
+                            value="{{data.license_number}}">
+                        </paper-input>
+                    </form-group>
+
+                    <!-- 
+                        Description
+                     -->
+                    <form-group cols="1">
+                        <paper-textarea 
+                            label="Propery Description"
+                            value="{{data.description}}"
+                            rows="5"></paper-textarea>
+                    </form-group>
+
+                    <h1 class="form-title">Contact Information</h1>
+                    <form-group cols="3">
+                        <paper-input
+                            label="Email:"
+                            type="email"
+                            value="{{data.email}}"
+                            name="email">
+                        </paper-input>
+                        <paper-input
+                            label="Phone:"
+                            type="text"
+                            value="{{data.phone}}"
+                            error-message="Property name is required"
+                            name="name">
+                        </paper-input>
+                        <paper-input
+                            label="Website:"
+                            type="text"
+                            value="{{data.website}}"
+                            error-message="Property name is required"
+                            name="name">
+                        </paper-input>
+                    </form-group>
+                </form>
+        </iron-form>
+        </section>
+
+    </template>
+
+    <script>
+        /**
+         * `hotel-form-first-step` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class HotelFormFirstStep extends BinessForm() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'hotel-form-first-step';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    data: {
+                        type: Object,
+                        notify: true
+                    }
+                };
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                this.form = this.$.form;
+
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    
+                });
+            }
+
+        }
+
+        window.customElements.define(HotelFormFirstStep.is, HotelFormFirstStep);
+    </script>
+</dom-module>

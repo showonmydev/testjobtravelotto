@@ -1,0 +1,221 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html">
+
+<dom-module id="app-navigation">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            .drawer-list a {
+                padding: 4px 16px;
+                text-decoration: none;
+                color: rgba(255, 255, 255, 0.5);
+                display: flex;
+                align-items: center;
+                line-height: 40px;
+                position: relative;
+            }
+
+            .drawer-list a iron-icon{
+                margin-right: 16px;
+                pointer-events: none;
+            }
+
+            .drawer-list a.iron-selected {
+                color: #ffffff;
+                background: rgba(38, 40, 43, 0.73);
+            }
+
+            .drawer-list a.iron-selected iron-icon{
+                color: #3e83e6;
+                background: white;
+            }
+
+            .drawer-list a iron-icon{
+                padding: 6px;
+                border-radius: 41px;
+            }
+
+            .drawer-list a:hover:not(.iron-selected) iron-icon
+            {
+                background: rgba(255, 255, 255, 0.2196078431372549);
+            }
+
+            .sub-nav{
+                padding-left: 3em;
+                background: rgba(38, 40, 43, 0.73);
+                height: auto;
+                transition: all 400ms ease-in-out;
+                overflow: hidden;
+                max-height: 500px;
+            }
+
+            .sub-nav a{
+                padding: 6px 16px;
+                line-height: 30px;
+                font-size: 14px;
+            }
+
+            .sub-nav a:hover{
+                color: rgba(255, 255, 255, 0.7294117647058823);
+            }
+
+            .sub-nav[hide]{
+                max-height: 0;
+            }
+        </style>
+
+        <iron-selector 
+            selected="[[_computeSelected(page)]]" 
+            attr-for-selected="name" 
+            class="drawer-list" 
+            role="navigation">
+
+            <a name="dashboard" href="/dashboard">
+                <iron-icon icon="my-icons:home"></iron-icon> Dashboard
+                <paper-ripple></paper-ripple>
+            </a>
+            <a name="accounts" on-click="_expandNav">
+                <iron-icon icon="my-icons:person"></iron-icon> Account Management
+                <paper-ripple></paper-ripple>
+            </a>
+            <div class="sub-nav" hide>
+                <a href="/accounts/customers">Customers</a>
+                <a href="/accounts/staff">Staff</a>
+                <a href="/accounts/suppliers">Suppliers</a>
+                <a href="/roles/">Roles & Permissions</a>
+            </div>
+            <a name="hotel" on-click="_expandNav">
+                <iron-icon icon="my-icons:hotel"></iron-icon> Property Management
+                <paper-ripple></paper-ripple>
+            </a>
+            <div class="sub-nav" hide>
+                <a href="/hotel-list">Property List</a>
+                <a href="/property-facilities/">Property Facilities</a>
+                <a href="/property-types/">Property Types</a>
+                <a href="/room-list">Room List</a>
+                <a href="/amenity-list/">Room Amenities</a>
+                <a href="/featured">Featured Property</a>
+                <a href="/property-settings">Settings</a>
+            </div>
+            <a name="booking" on-click="_expandNav">
+                <iron-icon icon="my-icons:suitcase"></iron-icon> Bookings
+                <paper-ripple></paper-ripple>
+            </a>
+            <div class="sub-nav" hide>
+                <a href="/booking-list">Booking List</a>
+            </div>
+            <a name="view3" href="/payments">
+                <iron-icon icon="my-icons:payment"></iron-icon> Payments
+                <paper-ripple></paper-ripple>
+            </a>
+            <a name="view3" href="/api">
+                <iron-icon icon="my-icons:in-out"></iron-icon> API
+                <paper-ripple></paper-ripple>
+            </a>
+            <a name="general" on-click="_expandNav">
+                <iron-icon icon="my-icons:settings"></iron-icon> General
+                <paper-ripple></paper-ripple>
+            </a>
+            <div class="sub-nav" hide>
+                <a href="/currency-list/">Currencies</a>
+                <a href="/hotel-list">Hotels</a>
+                <a href="/hotel-list">Rooms</a>
+                <a href="/hotel-list">Bookings</a>
+            </div>
+        </iron-selector>
+
+    </template>
+
+    <script>
+        /**
+         * `app-navigation` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppNavigation extends AppComponent() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-navigation';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    
+                };
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    
+                });
+            }
+
+            /** 
+             * It expands and collapses the navigation
+             * 
+             */
+            _expandNav(e){
+                let node = Polymer.dom(e).localTarget.nextElementSibling;
+                let attribute = 'hide';
+
+                node.hasAttribute(attribute) 
+                    ? node.removeAttribute(attribute)
+                    : node.setAttribute(attribute, true) 
+            }
+
+            /**
+             * It computes the seleted link
+             */
+            _computeSelected(page){
+                switch(page){
+                    case 'hotel-list':
+                    case 'create-hotel':
+                    case 'edit-hotel':
+                    case 'property-types':
+                    case 'create-property-type':
+                    case 'edit-property-type':
+                    case 'hotel-extras':
+                    case 'property-facilities':
+                    case 'amenity-list':
+                    case 'room-list':
+                        return 'hotel';
+                    case 'accounts':
+                    case 'roles':
+                        return 'accounts';
+                    case 'currency-list':
+                        return 'general';
+                }
+            }
+
+        }
+
+        window.customElements.define(AppNavigation.is, AppNavigation);
+    </script>
+</dom-module>

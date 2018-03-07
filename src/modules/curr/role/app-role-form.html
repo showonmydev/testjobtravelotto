@@ -1,0 +1,342 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../../components/biness-ajax-button.html">
+<link rel="import" href="../../../components/biness-form.html">
+<link rel="import" href="../../../components/biness-shady-input.html">
+<link rel="import" href="../../../components/app-alert.html">
+
+
+
+<dom-module id="app-role-form">
+    <template>
+        <style
+            include="shared-styles
+                iron-flex-factors
+                biness-shady-input
+                iron-flex iron-flex-alignment">
+            :host {}
+
+            #dialog {
+                display: block;
+                padding: 0 8px;
+                margin: 0;
+                width: 100%;
+                max-width: 900px;
+                margin: 0 auto;
+                background: var(--primary-background-color);
+                overflow: auto;
+                overflow: scroll;
+                overflow-x: hidden;
+                max-height: 542px;
+            }
+
+            .announcements{
+                padding: 1em 0;
+            }
+
+            paper-toggle-button{
+                font-weight: 500;
+            }
+
+            form>*{
+                padding: 0 1.3em;
+            }
+
+            .wrap>*{
+                width: 33%;
+                margin: 1em 0;
+            }
+        </style>
+
+        <paper-dialog 
+            opened="[[data]]" 
+            modal
+            on-iron-overlay-opened="patchOverlay"
+            id="dialog">
+
+            <main class="content main-frame">
+                <header>
+                    <div class="announcements">
+                        <app-alert
+                            title="Oopss!"
+                            id="alert"
+                            type="success"
+                            message="We are working here but you can poke around.">
+                        </app-alert>
+                    </div>
+                </header>
+                <section class="card no--pad">
+                    <header class="border-bottom page-header">
+                        <h3 class="title-text">
+                            Add Role
+                            <small>List of all Roles.</small>
+                        </h3>
+                        <span class="flex"></span>
+                    </header>
+
+                    <iron-form id="form">
+                        <form method="get" action="#">
+                            <paper-input
+                                label="Name"
+                                required 
+                                value="{{ data.display_name }}"
+                                error-message="Name field is required">
+                            </paper-input>
+
+                            <!-- Description -->
+                            <paper-textarea 
+                                rows="3"
+                                value="{{ data.description }}"
+                                max-rows="3"
+                                maxlength="250"
+                                label="Description">
+                            </paper-textarea>
+
+                            <!-- Permissions -->
+                            <section class="pad">
+                                <h3 class="title-text">
+                                    Permission
+                                    <small>Select permissions for this role</small>
+                                </h3>
+                                <iron-selector 
+                                    attr-for-selected="id" 
+                                    class="layout horizontal wrap pad"
+                                    selected-values="[[data.permissions]]" 
+                                    on-selected-values-changed="_updateSelected"
+                                    selected-attribute="checked"
+                                    multi>
+
+                                        <template 
+                                                is="dom-repeat" 
+                                                items="[[permissions]]" 
+                                                as="permission">
+
+                                            <paper-checkbox 
+                                                id="[[ permission.id ]]">[[ permission.display_name ]]</paper-checkbox>
+
+                                        </template>
+                                    </iron-selector>
+                                </div>
+                            </section>
+                            
+
+                            <footer class="layout horizontal pad form-actions">
+                                <paper-button on-click="dismiss">Cancel</paper-button>
+                                <biness-ajax-button 
+                                    class="light-btn"
+                                    accent raised
+                                    type="submit"
+                                    loading="[[loading]]"
+                                    on-click="submit">[[mode]]</biness-ajax-button>
+                            </footer>
+                        </form>
+                    </iron-form>
+
+                </section>
+            </main>
+        </paper-dialog>
+        
+    </template>
+
+    <script>
+        /**
+         * `property-type-form` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppRoleForm extends BinessForm() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-role-form';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    data: {
+                        type: Object,
+                        observer: '_dataChanged',
+                        value: null
+                    },
+                    mode: {
+                        computed: '_computeMode(data)'
+                    },
+                    
+                    redirectUrl: {
+                        type: String,
+                        value: '/roles/'
+                    }
+                     
+                };
+            }
+
+            static get observers() {
+                return [
+                ]
+            }
+
+            _updateSelected(e){
+
+                let data = e.detail.value;
+
+                if((typeof data) == "object"){
+
+                    let items = data.indexSplices[0]['object'];
+
+                    let _items = [];
+
+                    items.forEach((item) => _items.push(parseInt(item)))
+
+                    this.data._permissions = _items;
+                }
+
+                
+                
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _dataChanged(data){
+                this._checkShouldNavigateRoute();
+            }
+
+            //Hack can be extracted
+            //TODO
+            patchOverlay (e) {
+                if(e.target.withBackdrop) {
+                    e.target.parentNode.insertBefore(e.target.backdropElement, e.target)
+                }
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _checkShouldNavigateRoute(){
+                if(!this.data){
+                    App.Route.navigate(this.redirectUrl)
+                }
+                
+            }
+            
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeMode(data){
+                return data && data.id ? 'UPDATE' : 'CREATE';
+            }
+            
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            dismiss(){
+                this.data = null;
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            submit(){
+                 if (this.form.validate()) {
+                    this.loading = true;
+
+                    App.Event.emit('update:Role', {
+                            data: this.data,
+                            mode: this.mode,
+                    });
+
+                }
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _onUpdateComplete({result, error}){
+                (error != null) 
+                    ? this._handleError(error)
+                    : this._handleSuccess(result)
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _handleError({request, error}){
+                
+                console.log(request.parseResponse())
+
+                this.stopLoading()
+                this.$.alert.type = "danger"
+                this.$.alert.show()
+
+            }
+
+            stopLoading(){
+                this.loading = false;
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _handleSuccess(result){
+                this.stopLoading()
+                this.dismiss()
+            }
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                this.form = this.$.form;
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+
+                    App.Event.on('update:RoleCompleted', this._onUpdateComplete.bind(this));
+                });
+            }
+
+        }
+
+        window.customElements.define(AppRoleForm.is, AppRoleForm);
+    </script>
+</dom-module>

@@ -1,0 +1,272 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/lazy-imports/lazy-imports-mixin.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/shibui-dropdown-menu/shibui-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="my-icons.html">
+<link rel="import" href="shared-styles.html">
+<!-- Ensure Web Animations polyfill is loaded since neon-animation 2.0 doesn't import it -->
+<link rel="import" href="../bower_components/neon-animation/web-animations.html">
+
+<!-- Modules -->
+<link rel="import" href="modules/state/redux-mixin.html">
+<link rel="import" href="modules/route/biness-route/biness-route.html">
+<link rel="import" href="modules/auth/app-login.html">
+<link rel="import" href="modules/auth/biness-auth-service.html">
+<link rel="import" href="services/resource-service.html">
+<link rel="import" href="modules/user/user.html">
+
+<!-- Components -->
+<link rel="import" href="components/app-navigation.html">
+<link rel="import" href="components/app-confirm-modal.html">
+<link rel="import" href="modules/user/user.html">
+<link rel="import" href="components/app-user-menu.html">
+
+<!-- Environment -->
+<link rel="import" href="environment/production.html">
+
+<dom-module id="my-app">
+
+  <!-- 
+      Lazy Pages
+  -->
+  <link rel="lazy-import" group="hotel-list" href="modules/hotel/app-hotel-list.html">
+  <link rel="lazy-import" group="room-list" href="modules/room/room-list.html">
+  <link rel="lazy-import" group="room-form" href="modules/room/room-form.html">
+  <link rel="lazy-import" group="hotel-form" href="modules/hotel/forms/app-hotel-form.html">
+  <link rel="lazy-import" group="property-types" href="modules/hotel/property-type/app-property-type-list.html">
+  <link rel="lazy-import" group="hotel-extras" href="modules/hotel/app-hotel-extras.html">
+  <link rel="lazy-import" group="property-facilities" href="modules/hotel/property-facility/app-hotel-facilities.html">
+  <link rel="lazy-import" group="accounts" href="modules/user/app-accounts.html">
+  <link rel="lazy-import" group="roles" href="modules/user/role/app-roles.html">
+  <link rel="lazy-import" group="amenity-list" href="modules/room/amenity/amenity-list.html">
+  <link rel="lazy-import" group="room-rates" href="modules/room/room-rates.html">
+  <link rel="lazy-import" group="dashboard" href="modules/dashboard/app-dashboard.html">
+  <link rel="lazy-import" group="gallery" href="modules/gallery/app-gallery.html">
+  <link rel="lazy-import" group="featured" href="modules/hotel/featured-property/featured-property.html">
+  <link rel="lazy-import" group="currency-list" href="modules/currency/currency-list.html">
+  <link rel="lazy-import" group="booking-list" href="modules/booking/booking-list.html">
+
+  <template>
+    <style include="iron-flex shared-styles iron-flex-alignment">
+      :host {
+        --app-primary-color: #599eff;
+        --app-secondary-color: #283240;
+        --app-accent-color:#0ba;
+
+        display: block;
+      }
+
+      app-drawer-layout:not([narrow]) [drawer-toggle] {
+        display: none;
+      }
+
+      app-header {
+        color: #fff;
+        background-color: #fdfdfd;
+        box-shadow: 0px 0px 2px #0000006e;
+      }
+
+      app-drawer{
+        --app-drawer-content-container:{
+          background-color: var(--app-secondary-color);
+        } 
+        z-index: inherit;
+      }
+
+      app-header paper-icon-button {
+        --paper-icon-button-ink-color: white;
+      }
+
+      paper-progress{
+        width:100%;
+        --paper-progress-active-color: var(--app-primary-color);
+      }
+
+      .user-menu__profile{
+        cursor: pointer;
+      }
+
+      .user-menu__profile-img{
+        max-width: 41px !important;
+        border-radius: 50%;
+        border: 1px solid #599eff;
+        padding: 4px;
+        vertical-align: middle;
+      }
+
+    </style>
+
+    <!-- 
+     Manage Application Routes
+    -->
+    <biness-route
+        page="{{page}}" 
+        view="{{view}}"></biness-route>
+
+
+    <biness-auth-service id="auth" user="{{user}}"></biness-auth-service>
+    <app-resource-service id="resourceService"></app-resource-service>
+
+    <app-drawer-layout fullbleed narrow="{{narrow}}" id="layout">
+      <!-- Drawer content -->
+      <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
+        <app-toolbar></app-toolbar>
+
+        <app-navigation 
+          view="[[view]]"
+          page="[[page]]"></app-navigation>
+      </app-drawer>
+
+      <!-- Main content -->
+      <app-header-layout>
+
+        <app-header slot="header">
+          <app-toolbar>
+
+            <a href="/" title="Travelotto">
+              <travelotto-logo>
+                <img src="/images/logo.png" alt="travelotto logo">
+              </travelotto-logo>
+            </a>
+
+            <span main-title></span>
+            <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
+            <div class="user-menu__profile" id="user-button" on-click="_showUserMenu">
+              <img 
+                  class="user-menu__profile-img" 
+                  alt="" 
+                  title="Matarr Jobe" 
+                  src$="[[user.avatar]]">
+              <!-- <span class="user-menu__badge">3</span> -->
+            </div>
+          </app-toolbar>
+          <paper-progress indeterminate hidden="[[!appIsloading]]"></paper-progress>
+        </app-header>
+
+        <app-user-menu id="userMenu"></app-user-menu>
+
+        <iron-pages
+            selected="[[view]]"
+            attr-for-selected="name"
+            fallback-selection="view404"
+            role="main">
+
+          <app-hotel-list name="hotel-list"></app-hotel-list>
+          <app-room-list name="room-list"></app-room-list>
+          <app-room-form name="room-form"></app-room-form>
+          <app-hotel-form name="hotel-form"></app-hotel-form>
+          <app-property-type-list name="property-types"></app-property-type-list>
+          <app-hotel-extras name="hotel-extras"></app-hotel-extras>
+          <app-hotel-facilities name="property-facilities"></app-hotel-facilities>
+          <app-accounts name="accounts"></app-accounts>
+          <app-amenity-list name="amenity-list"></app-amenity-list>
+          <app-roles name="roles"></app-roles>
+          <app-room-rates name="room-rates"></app-room-rates>
+          <app-dashboard name="dashboard"></app-dashboard>
+          <app-gallery name="gallery"></app-gallery>
+          <app-currency-list name="currency-list"></app-currency-list>
+          <app-featured-property-list name="featured"></app-featured-property-list>
+          <app-booking-list name="booking-list"></app-booking-list>
+        </iron-pages>
+      </app-header-layout>
+    </app-drawer-layout>
+
+    <!-- Utils -->
+    <app-confirm-modal></app-confirm-modal>
+
+    <!-- Authentication -->
+    <app-login authenticated="[[ authenticated ]]"></app-login>
+  </template>
+
+  <script>
+    class MyApp extends AppMediator() {
+
+      static get is() { return 'my-app'; }
+
+      static get properties() {
+        return {
+
+          page: {
+            type: String,
+            reflectToAttribute: true
+          },
+
+          user: {
+            statePath: 'user',
+            observer: '_userChanged'
+          },
+
+          routeData: Object,
+          subroute: String,
+          // This shouldn't be neccessary, but the Analyzer isn't picking up
+          // Polymer.Element#rootPath
+          rootPath: String,
+        };
+      }
+
+      static get observers() {
+        return [
+          '_viewChanged(view)'
+        ];
+      }
+
+      /**
+      * @desc When fired will set authenticated to the user
+      * @param Object user - the current logged in user. could be null
+      */
+      _userChanged(user) {
+        this.authenticated = user;
+      }
+      
+      _showUserMenu(e){
+
+        this.$.userMenu.open();
+        
+      }
+      /**
+      * @desc Imports the current view
+      * @param string view - the view to be loaded
+      * @throws error - Could not load page
+      */
+      async _viewChanged(view) {
+        
+        this.appIsloading = true;
+
+          try {
+
+              await this.importLazyGroup(view);
+              this.$.layout.resetLayout();
+              this.appIsloading = false;
+
+          } catch (e) {
+
+              console.error('Oops! The page does not exist.');
+
+          }
+      }
+
+    }
+
+    window.customElements.define(MyApp.is, MyApp);
+  </script>
+</dom-module>

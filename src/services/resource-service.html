@@ -1,0 +1,139 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="app-http-service.html">
+
+<dom-module id="app-resource-service">
+    <template>
+
+        <app-http-service 
+            id="tunnel"
+            url="resource">
+        </app-http-service>
+
+    </template>
+
+    <script>
+        /**
+         * `localtribe-resource-service` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppResourceService extends AppComponent() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-resource-service';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    
+                };
+            }
+
+            static get actions(){
+                return {
+                    setResources(resources){
+                        return {
+                            type: C.SET_RESOURCES,
+                            payload: resources
+                        }
+                    }
+                }
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            getResources(){
+                this.$.tunnel.method = 'GET';
+                let req = this.$.tunnel.makeRequest();
+                req.completes.then((req) => {
+
+                    // succesful request, We will get the newly created Space
+                    let res = req.parseResponse();
+
+                    this.dispatch('setResources', res);
+                }, (rejected) => {
+
+                    // failed request, argument is an object
+                    alert('error occured!');
+                    App.Event.emit('error', { detail: 'Oops! Looks like something went wrong..' });
+                    //reload the page
+
+                });
+
+                
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            registerReducer(){
+                //resource reducer
+                App.reducers[C.SET_RESOURCES] = (state, action) => {
+
+                    let newState = Object.assign({}, state)
+                    newState.resources = action.payload
+                    return newState
+                }
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _getCountryNameFromCode(code, countries){
+                if(!countries || !code) return;
+                
+                let country = countries.find((item) => item.code == code.toLowerCase())
+
+                return country ? country.name : 'Unknown'
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                this.registerReducer()
+                this.getResources()
+
+                App.Event.on('update:PropertyTypeCompletes', (e) => this.getResources())
+                App.Event.on('update:PropertyFacilityCompletes', (e) => this.getResources())
+
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+
+                    App.Countries = {};
+                    App.Countries.getNameFromCode = this._getCountryNameFromCode;
+                    
+                });
+            }
+
+        }
+
+        window.customElements.define(AppResourceService.is, AppResourceService);
+    </script>
+</dom-module>

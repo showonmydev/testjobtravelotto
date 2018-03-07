@@ -1,0 +1,25 @@
+<!-- 
+    Route Reducers
+ -->
+<script>
+
+    App.reducers[C.UPDATE_ROUTE] = (state, action) => {
+
+        let newState = Object.assign({}, state);
+        newState.route = action.payload;
+        return newState;
+    }
+</script>
+
+<script>
+    App.Route = {
+
+
+
+        navigate: (uri) => {
+
+            window.history.pushState({}, null, uri);
+            window.dispatchEvent(new CustomEvent('location-changed'));
+        }
+    }
+</script>

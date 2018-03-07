@@ -1,0 +1,86 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<!-- shared styles for all views -->
+<dom-module id="app-data-table">
+    <template>
+        <style>
+            :host{
+                overflow: hidden;
+                max-height: calc(100vh - 64px);
+            }
+            vaadin-grid{
+                height: calc(100vh - 254px);
+                border:0px;
+            }
+
+            .filters>*{
+                margin-right: 24px;
+            }
+            
+            app-badge{
+                -webkit-border-radius: 10px;
+                -moz-border-radius: 10px;
+                -ms-border-radius: 10px;
+                -o-border-radius: 10px;
+                border-radius: 10px;
+                font-size: .8rem;
+                line-height: 20px;
+                min-height: 20px;
+                min-width: 20px;
+                vertical-align: middle;
+                text-align: center;
+                display: inline-block;
+                letter-spacing: .6px;
+                padding: 1px 10px;
+            }
+
+            app-badge.green{
+                background-color: #34bfa3;
+                color: #ffffff;
+            }
+
+            app-badge.red{
+                background-color: #f4516c;;
+                color: #ffffff;
+            }
+
+            header[page]{
+                padding: 16px;
+                margin-top: 24px;
+            }
+
+            .actions paper-icon-button{
+                color:#777777;
+            }
+        </style>
+    </template>
+</dom-module>
+
+<script>
+
+
+    const AppDataTable = () => class extends AppComponent(ReduxMixin(Polymer.Element)) {
+
+       _getStatus(active) {
+            return active ? 'Active' : 'Inactive'
+        }
+
+        _computeStatusClass(active) {
+            return active ? 'green' : 'red'
+        }
+
+        paginate(data){
+            
+        }
+    } 
+</script>

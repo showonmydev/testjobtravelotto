@@ -1,0 +1,347 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../../components/biness-form.html">
+<link rel="import" href="../../../components/biness-shady-input.html">
+<link rel="import" href="../../../modules/hotel/forms/steps/hotel-form-first-step.html">
+<link rel="import" href="../../../modules/hotel/forms/steps/hotel-form-second-step.html">
+<link rel="import" href="../../../modules/hotel/forms/steps/hotel-form-third-step.html">
+<link rel="import" href="../../../modules/hotel/app-hotel-service.html">
+<link rel="import" href="../../../components/app-alert.html">
+<link rel="import" href="../../../components/app-ui-loader.html">
+
+<dom-module id="app-hotel-form">
+    <template>
+        <style 
+            include="shared-styles
+                iron-flex-factors
+                biness-shady-input
+                iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                padding: 16px;
+            }
+
+            iron-pages{
+                background: white;
+                padding: 1em 0;
+                max-width: 1078px;
+                margin: 0 auto;
+            }
+
+            paper-toggle-button{
+                font-weight: 500;
+            }
+            
+            paper-icon-button{
+                margin: 0 16px;
+                color: #283240bd;
+                border: 1px solid #eee;
+                border-radius: 45px;
+            }
+
+            iron-pages>*{
+                padding: 1em 4em;
+            }
+
+        </style>
+
+        
+        <main class="content main-frame">
+            <header>
+                    <div class="announcements">
+                        <app-alert
+                            title="Oopss!"
+                            id="alert"
+                            type="success"
+                            message="We are working here but you can poke around.">
+                        </app-alert>
+                    </div>
+                </header>
+            <section class="card no--pad">
+                <header class="border-bottom page-header">
+                    <h3 class="title-text">
+                        Create Hotel
+                        <small>
+                            List of all hotels.
+                        </small>
+                    </h3>
+                        <span class="flex"></span>
+                        <div>
+                            <paper-toggle-button checked="{{ data.active }}" class="accent">Active</paper-toggle-button>
+                        </div>
+                        <paper-menu-button>
+                            <paper-icon-button icon="my-icons:more_vert" slot="dropdown-trigger" alt="menu"></paper-icon-button>
+                            <paper-listbox slot="dropdown-content">
+                                <paper-item>Bookings</paper-item>
+                                <paper-item>Policies</paper-item>
+                                <paper-item>Rooms</paper-item>
+                            </paper-listbox>
+                        </paper-menu-button>
+                </header>
+                <iron-pages
+                    selected="[[state]]"
+                    fallback-selection="first"
+                    id="steps"
+                    role="main">
+                    
+                    <hotel-form-first-step 
+                        mode="[[mode]]"
+                        data="{{data}}"
+                        resources="[[resources]]"></hotel-form-first-step>
+
+                    <hotel-form-second-step  
+                        data="{{data}}"
+                        resources="[[resources]]"></hotel-form-second-step>
+
+                    <hotel-form-third-step 
+                        data="{{data}}"
+                        resources="[[resources]]"></hotel-form-third-step>
+                </iron-pages>
+                <footer class="layout horizontal pad form-actions">
+                    <paper-button on-click="_prev" style="background: #e9f2f6; color: #0664b9;" hidden$="[[!_hasPrev(state)]]">Back</paper-button>
+                    <paper-button accent raised on-click="_next" hidden$="[[!_hasNext(state)]]">Continue</paper-button>
+                    <paper-button 
+                            accent 
+                            on-click="_next" 
+                            hidden$="[[!_showPublishButton(state, validated)]]" 
+                            disabled="[[busy]]">Publish</paper-button>
+                </footer>
+            </section>
+
+            <!-- Loader -->
+            <app-ui-loader active$="[[loading]]"></app-ui-loader>
+        </main>
+    </template>
+
+    <script>
+        /**
+         * `app-hotel-form` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class HotelForm extends AppComponent() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-hotel-form';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    state: {
+                        type: Number,
+                        value: 0,
+                        observer: '_stateChanged'
+                    },
+                    data: {
+                        type: Object,
+                        value: {},
+                        observer: '_dataChanged'
+                    },
+                    route: {
+                        statePath: 'route',
+                        type: Object,
+                        observer: '_routeChanged'
+                    },
+                    resources: {
+                        statePath: 'resources'
+                    },
+                    activeHotel: {
+                        type: Object,
+                        statePath: 'hotels.activeHotel',
+                        observer: '_activeHotelChanged'
+                    }
+                };
+            }
+            
+            static get actions() {
+                return {
+                    editHotel(data) {
+                        return {
+                            type: C.EDIT_HOTEL,
+                            payload: data
+                        };
+                    }
+                };
+            }
+            
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            _routeChanged(route) {
+                Polymer.RenderStatus.afterNextRender(this, () => {
+                    if (route.page == 'edit-hotel' && route.slug) {
+                        this.mode = 'edit';
+                        this._checkShouldRequestSpace();
+                    }
+                });
+            }
+
+            _activeHotelChanged(data){
+                
+                if(data){
+                    this.data = data
+                }
+            }
+
+            _dataChanged(){
+                this.state = 0;
+            }
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            _hasPrev(state) {
+                return state > 0;
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            _hasNext(state) {
+                return state < 2;
+            }
+
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            _next() {
+                let elem = this.$.steps.children[this.state];
+
+                if (elem.validate()) {
+                    if (!this._hasNext(this.state)) return this.publish();
+
+                    this.state++;
+                }
+
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            _prev() {
+                if (this.state > 0) {
+                    this.state--;
+                }
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            _stateChanged() {
+                Polymer.AppLayout.scroll({ top: 0, behavior: 'smooth' });
+            }
+
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            _showPublishButton(state, validated) {
+                return !this._hasNext(state);
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            _checkShouldRequestSpace() {
+                if (!this.data.id) {
+                    
+                    this.loading = true;
+
+                    this.service.show(this.route.slug, (res, err) => {
+
+                        if(err){
+                            //There was an error
+                            console.error('The space was not found or somehing')
+                            return;
+                        }
+                        this.loading = false;
+                        this.dispatch('editHotel', res)
+                    });
+                }
+            }
+
+            publish(){
+                
+                let mode = this.data.id ? 'EDIT' : 'CREATE';
+                this.loading = true;
+
+                this.service.update({ data: this.data, mode: mode})
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _handleError({ request, error }) {
+
+                console.log(request.parseResponse())
+
+                this.loading = false;
+                this.$.alert.type = "danger"
+                this.$.alert.show()
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _onUpdateComplete({ result, error }) {
+                (error != null)
+                    ? this._handleError(error)
+                    : this._handleSuccess(result)
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _handleSuccess(result) {
+                App.Route.navigate('/hotels')
+                this.loading = false;
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                
+                //Get me hotels service
+                this.service = App.inject('Hotel.Service', 'app-hotel-service');
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+
+                    App.Event.on('update:HotelCompleted', this._onUpdateComplete.bind(this));
+
+                });
+            }
+
+        }
+
+        window.customElements.define(HotelForm.is, HotelForm);
+    </script>
+</dom-module>

@@ -1,0 +1,198 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../components/biness-ajax-button.html">
+<link rel="import" href="../../components/biness-form.html">
+
+<dom-module id="app-login">
+    <template>
+        <style>
+            :host {
+                display: flex;
+                position: absolute;
+                justify-content: center;
+                top: 0;
+                align-items: center;
+                left: 0;
+                bottom: 0;
+                right: 0;
+                background: var(--app-secondary-color);
+            }
+
+            :host([authenticated]){
+                display: none;
+            }
+
+            .main-frame{
+                max-width: 700px;
+                margin: 0 auto;
+                width: 100%;
+
+            }
+
+            .error{
+                color: rgba(255, 255, 255, 0.71);
+                font-weight: 400;
+                font-size: 13px;
+            }
+
+            biness-ajax-button{
+                --paper-button:{
+                    padding: 14px 70px;
+                    background: #f1f1f1;
+                    border-radius: 24px;
+                    font-weight: 500;
+                    color: #213f77;
+                }
+            }
+
+            paper-input{
+                --paper-input-container-color: rgba(255, 255, 255, 0.67);
+                --paper-input-container-focus-color: white;
+                --paper-input-container-input-color: rgba(255, 255, 255, 0.88);
+            }
+
+            paper-input iron-icon{
+                margin-right: 14px;
+                 color: rgba(255, 255, 255, 0.7019607843137254);
+
+            }
+            @media (max-width: 500px){
+                #dialog{  
+                    min-height: 100vh;
+                }
+            }
+        </style>
+
+         <section state="login" class="main-frame">
+            <iron-form id="form">
+                <form method="get" action="#">
+                    <paper-input
+                        label="email"
+                        required 
+                        type="email"
+                            on-keypress="_checkForEnter"
+                            autocomplete="on"
+                        error-message="please enter a valid email"
+                        name="email">
+                        <iron-icon icon="my-icons:mail" slot="prefix"></iron-icon>
+                    </paper-input>
+
+                    <paper-input 
+                        label="password" 
+                        type="password"
+                            pattern=".{6,}"
+                            on-keypress="_checkForEnter"
+                            autocomplete="on"
+                            error-message="Please enter a valid password"
+                        name="password"
+                        required>
+                        <iron-icon icon="my-icons:key" slot="prefix"></iron-icon>
+                    </paper-input>
+
+                    <span class="error" hidden="[[!loginError]]">[[loginError]]</span>
+
+                    <div class="layout horizontal center-center pad" style="margin-top:2em;">
+                        <biness-ajax-button 
+                            class="light-btn"
+                            type="submit"
+                                loading="[[loading]]"
+                            on-click="signIn">Log In</biness-ajax-button>
+                    </div>
+                </form>
+            </iron-form>
+        </section>
+
+    </template>
+
+    <script>
+        /**
+         * `app-login` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppLogin extends BinessForm() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-login';
+            }
+
+          /**
+               * Object describing property-related metadata used by Polymer features
+               */
+            static get properties() {
+                return {
+
+                    state: {
+                        type: String,
+                        observer: '_stateChanged'
+                    },
+
+                    authenticated: {
+                        type: Boolean,
+                        reflectToAttribute: true
+                    }
+                };
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            signIn() {
+
+                if (this.form.validate()) {
+                    this.loading = true;
+                    let data = this.form.serializeForm();
+
+                    App.Event.emit('signIn', {
+                        detail: {
+                            email: data.email,
+                            password: data.password
+                        }
+                    })
+                }
+
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                // Register Auth Events
+                App.Event.on('AuthErrorChanged', (e) => this._errorChanged(e));
+
+                this.form = this.$.form;
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+                });
+            }
+
+            _errorChanged(e) {
+                let error = e.detail.message;
+                this.loading = false
+                this.signupError = error;
+            }
+
+        }
+
+        window.customElements.define(AppLogin.is, AppLogin);
+    </script>
+</dom-module>

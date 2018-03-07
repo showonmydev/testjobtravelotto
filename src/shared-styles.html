@@ -1,0 +1,214 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<!-- shared styles for all views -->
+<dom-module id="shared-styles">
+  <template>
+    <style>
+      [hidden]{
+        display: none;
+        visibility: hidden;
+      }
+
+      .shadow{
+        -webkit-box-shadow: 0 1px 15px 1px rgba(69,65,78,.08);
+        -moz-box-shadow: 0 1px 15px 1px rgba(69,65,78,.08);
+        box-shadow: 0 1px 15px 1px rgba(69,65,78,.08);
+      }
+
+      .page-title{
+        margin: 0;
+        color: #283340;
+        font-weight: 400;
+
+      }
+
+      .page-sub-title{
+        color: #283340;
+        margin: 0;
+        font-size: 13px;
+      }
+      img[rounded] {
+          border-radius: 50%;
+      }
+
+      .pad{
+        padding: 16px;
+      }
+
+      .border-bottom{
+        border-bottom: 1px solid #ebedf2;
+      }
+
+      .title-text{
+        vertical-align: middle;
+        font-size: 1.3rem;
+        margin: 0;
+        color: #283240;
+        font-weight: 500;
+      }
+
+      .title-text small{
+        display: inline-block;
+        padding-left: 5px;
+        font-size: 1rem;
+        color: rgba(40, 50, 64, 0.78);
+        font-weight: 300;
+      }
+
+      .card{
+        background: white;
+        padding: 16px;
+        -webkit-box-shadow: 0 1px 15px 1px rgba(69,65,78,.08);
+        -moz-box-shadow: 0 1px 15px 1px rgba(69,65,78,.08);
+        box-shadow: 0 1px 15px 1px rgba(69,65,78,.08);
+      }
+
+      .no--pad{
+        padding: 0px;
+      }
+      
+      a{
+        text-decoration: none;
+      }
+
+      .info-panel, main>div {
+        background: white;
+      }
+
+      .info-alert__icon{
+        vertical-align: middle;
+        text-align: center;
+        padding: 1.45rem .5rem 1.45rem 1.75rem;
+        line-height: 0;
+        width: 1%;
+      }
+
+      .info-alert__text{
+        vertical-align: middle;
+        width: auto;
+        font-size: 14px;
+        color: rgba(40, 50, 64, 0.84);
+        padding: 1.45rem 1.25rem;
+      }
+
+      paper-button[accent]{
+        color: white;
+        background: #599eff;
+        max-height: 44px;
+        padding: 10px 24px;
+        font-size: 14px;
+        box-shadow: 0 5px 20px rgba(89, 158, 255, 0.86);
+      }
+
+      paper-button[rounded]{
+        border-radius: 24px;
+      }
+
+      .m-badge.m-badge--dot {
+        padding: 0;
+        line-height: 6px;
+        min-height: 6px;
+        min-width: 6px;
+        height: 6px;
+        width: 6px;
+        -webkit-border-radius: 100%;
+        -moz-border-radius: 100%;
+        -ms-border-radius: 100%;
+        -o-border-radius: 100%;
+        border-radius: 100%;
+      }
+      .m-badge {
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        -ms-border-radius: 10px;
+        -o-border-radius: 10px;
+        border-radius: 10px;
+        background: #eaeaea;
+        color: #444;
+        font-size: 0.8rem;
+        line-height: 20px;
+        min-height: 20px;
+        min-width: 20px;
+        vertical-align: middle;
+        text-align: center;
+        display: inline-block;
+        padding: 0px 2px;
+    }
+
+      .m-badge.m-badge--primary {
+          background-color: #5867dd;
+          color: #ffffff;
+      }
+
+      .page-header{
+        padding: 2.5em;
+        display: flex;
+        align-items: center;
+      }
+
+      .form-actions{
+          background: #f7f7f7;
+          padding: 1em 3em;
+      }
+
+      .text-primary {
+        color: #5867dd !important;
+      }
+      .bold{
+        font-weight: 500;
+      }
+
+      .main-frame{
+        position: relative;
+      }
+      
+      .capitalize{
+        text-transform: capitalize;
+      }
+      
+      paper-toggle-button.accent {
+      --paper-toggle-button-checked-bar-color:  var(--app-accent-color);
+      --paper-toggle-button-checked-button-color:  var(--app-accent-color);
+      --paper-toggle-button-checked-ink-color: var(--app-accent-color);
+      /* --paper-toggle-button-unchecked-bar-color:  var(--app-accent-color); */
+      /* --paper-toggle-button-unchecked-button-color:  var(--app-accent-color);
+      --paper-toggle-button-unchecked-ink-color: var(--app-accent-color); */
+    }
+
+    /* Accordion */
+    .accordion-content{
+      max-height: 0;
+      overflow: hidden;
+      transition: all 400ms ease-in-out;
+          
+    }
+
+    .accordion-content[active]{
+      max-height: 500px;
+    }
+
+    .accordion-header{
+      background: #f7f7f7;
+      padding: 16px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .accordion-header h1{
+        margin: 0;
+        font-weight: 500;
+        font-size: 14px;
+      }
+    </style>
+  </template>
+</dom-module>

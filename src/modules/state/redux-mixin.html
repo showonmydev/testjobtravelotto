@@ -1,0 +1,85 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../../bower_components/polymer-redux/polymer-redux.html">
+
+<script>
+    const C = {
+
+        // User Actions
+        UPDATE_USER: 'updateUser',
+
+        //State Actions
+        UPDATE_ROUTE: 'updateRoute',
+
+        //App Actions
+        SET_RESOURCES: 'setResources',
+
+        //Hotel Actions
+        EDIT_HOTEL: 'editHotel',
+        UPDATE_HOTELS: 'updateHotels',
+
+        //Roles Actions
+        UPDATE_ROLES: 'updateRoles',
+
+        //Room Actions
+        EDIT_ROOM: 'editRoom',
+        UPDATE_ROOMS: 'updateRooms',
+        
+        //Update Amenities
+        UPDATE_AMENITIES: 'updateAmenities'
+        
+    }
+</script>
+<script>
+    // Setup a Redux store
+    const initial = App.state;
+
+    const reducer = function (state, action) {
+        switch (action.type) {
+            case C.UPDATE_USER: return App.reducers[C.UPDATE_USER](state, action)
+            case C.UPDATE_ROUTE: return App.reducers[C.UPDATE_ROUTE](state, action)
+            case C.SET_RESOURCES: return App.reducers[C.SET_RESOURCES](state, action)
+            case C.EDIT_HOTEL: return App.reducers[C.EDIT_HOTEL](state, action)
+            case C.UPDATE_ROLES: return App.reducers[C.UPDATE_ROLES](state, action)
+            case C.UPDATE_HOTELS: return App.reducers[C.UPDATE_HOTELS](state, action)
+            case C.UPDATE_ROOMS: return App.reducers[C.UPDATE_ROOMS](state, action)
+            case C.EDIT_ROOM: return App.reducers[C.EDIT_ROOM](state, action)
+            case C.UPDATE_AMENITIES: return App.reducers[C.UPDATE_AMENITIES](state, action)
+            default: return state;
+        }
+    };
+
+    const store = Redux.createStore(
+        reducer,
+        initial,
+
+        // The best part 8)
+        Redux.compose(
+            window.devToolsExtension
+                ? window.devToolsExtension()
+                : v => v
+        )
+    );
+
+    // Create the Polymer mixin
+    ReduxMixin = PolymerRedux(store);
+</script>
+
+<script>
+    //Extract later
+    const AppMediator = () => class extends ReduxMixin(Polymer.LazyImportsMixin(Polymer.Element)) {
+
+    }
+
+    const AppComponent = () => class extends ReduxMixin(Polymer.Element) {
+
+    } 
+</script>

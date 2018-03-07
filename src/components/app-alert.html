@@ -1,0 +1,132 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+<dom-module id="app-alert">
+    <template>
+        <style include="iron-flex-factors
+                biness-shady-input
+                iron-flex iron-flex-alignment">
+
+            :host {
+                display: none;
+                align-items: center;
+                -webkit-box-shadow: 0px 1px 15px 1px rgba(69, 65, 78, 0.08);
+                -moz-box-shadow: 0px 1px 15px 1px rgba(69, 65, 78, 0.08);
+                box-shadow: 0px 1px 15px 1px rgba(69, 65, 78, 0.08);
+                padding: 15px;
+                color: white;
+                border-radius: 4px;
+                transition: all 0.15s ease-in;
+                opacity: 0;
+            }
+
+            :host([visible]){
+                display: flex;
+                opacity: 1;
+            }
+
+            :host([type=success]){
+                background-color: #45ccb1;
+            }
+            :host([type=warn]){
+                background-color: #ffc241;
+            }
+            :host([type=danger]){
+                    background-color: #f66e84;
+            }
+            :host([type=info]){
+                color: #575962;
+            }
+
+            iron-icon{
+                padding: 0 14px;
+            }
+        </style>
+
+            <iron-icon icon="my-icons:alert" ></iron-icon>
+            <div class="m-alert__text">
+                <strong>[[title]]</strong>
+                [[message]]
+            </div>
+            <span class="flex"></span>
+            <paper-icon-button icon="my-icons:close" on-click="hide"></paper-icon-button>
+
+
+    </template>
+
+    <script>
+        /**
+         * `app-alert` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppAlert extends Polymer.Element {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-alert';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    type: {
+                        type: String,
+                        reflectToAttribute:true
+                    },
+                    message: {
+                        type: String,
+                        reflectToAttribute: true
+                    },
+                    title: {
+                        type: String,
+                        reflectToAttribute: true
+                    },
+                    visible: {
+                        type: Boolean,
+                        reflectToAttribute: true,
+                        value: false
+                    },
+                };
+            }
+
+            hide(){
+                //fire out an event we are closing or opening
+                this.visible = false;
+            }
+
+            show(){
+                this.visible = true;
+            }
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    
+                });
+            }
+
+        }
+
+        window.customElements.define(AppAlert.is, AppAlert);
+    </script>
+</dom-module>

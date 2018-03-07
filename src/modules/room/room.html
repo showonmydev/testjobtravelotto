@@ -1,0 +1,31 @@
+<!-- 
+    Room Reducers
+ -->
+<script>
+
+    App.reducers[C.UPDATE_ROOMS] = (state, action) => {
+
+        let newState = Object.assign({}, state);
+        newState.rooms = action.payload;
+        return newState;
+    }
+
+    App.reducers[C.EDIT_ROOM] = (state, action) => {
+        
+        let newState = Object.assign({}, state);
+        newState.rooms = newState.rooms || [];
+        newState.rooms.activeRoom = action.payload;
+        return newState;
+    }
+
+
+</script>
+
+<!-- 
+    Room Module
+ -->
+<script>
+    App.Room = {
+        
+    }
+</script>

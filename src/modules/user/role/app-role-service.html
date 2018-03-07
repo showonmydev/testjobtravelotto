@@ -1,0 +1,252 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../services/app-http-service.html">
+
+
+<dom-module id="app-role-service">
+    <template>
+        <app-http-service id="tunnel" route-prefix="admin"></app-http-service>
+    </template>
+    <script>
+        /**
+         * `localtribe-user-service` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppRoleService extends AppComponent(){
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-role-service';
+            }
+
+            /**
+            * Object describing property-related metadata used by Polymer features
+            */
+            static get properties() {
+                return {
+                    data: {
+                        type: Array,
+                        notify: true,
+                        value: []
+                    },
+                    endpoint: {
+                        type: String,
+                        value: 'role'
+                    },
+                    permissions:{
+                        type: Array,
+                        notify: true
+                    }
+                };
+            }
+
+            static get actions() {
+                return {
+                    setRoles(roles) {
+                        return {
+                            type: C.UPDATE_ROLES,
+                            payload: roles
+                        }
+                    }
+                };
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _index() {
+                //Cursor
+                this.$.tunnel.url = this.endpoint;
+                this.$.tunnel.params = { page: 1 };
+                this.$.tunnel.method = 'GET';
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    let data = res.response.data;
+
+                    this.dispatch('setRoles', data)
+                    //update the state of the app
+                    console.log('update the state');
+                    console.log(data)
+
+                }, (rejected) => {
+
+                    // App.Event.emit('update:HotelCompleted', {
+                    //     error: rejected
+                    // });
+
+                });
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            update({ data, mode }) {
+
+                this.$.tunnel.params = {};
+                this.$.tunnel.body = data;
+                this.$.tunnel.method = this._computeMethod(mode)
+                this.$.tunnel.url = this._computeUrl(mode, data.id)
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    this._onUpdated(res)
+
+                }, (rejected) => {
+
+                    App.Event.emit('update:HotelCompleted', {
+                        error: rejected
+                    });
+
+                });
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _destroy({ data }) {
+                if (!data.id) return;
+
+                this.$.tunnel.params = {};
+                this.$.tunnel.method = 'DELETE'
+                this.$.tunnel.url = `${this.endpoint}/${data.id}`;
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    this.refresh()
+
+                }, (rejected) => {
+
+
+                });
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            show(id, callback) {
+                if (!id) return;
+
+                this.$.tunnel.params = {};
+                this.$.tunnel.method = 'GET'
+                this.$.tunnel.url = `${this.endpoint}/${id}`;
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    callback(res, null);
+
+                }, (rejected) => {
+
+                    callback(null, rejected);
+                });
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeMethod(mode) {
+                return mode === 'CREATE' ? 'POST' : 'PATCH';
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeUrl(mode, id) {
+                return (mode === 'CREATE')
+                    ? this.endpoint
+                    : `${this.endpoint}/${id}`
+            }
+
+            async getPermissions(){
+                
+                const response = await App.Request.get(`${App.env.app_domain}/api/admin/permission`)
+                const data = await response.json();
+
+                return data;
+                
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            refresh() {
+                this.data = [];
+                this._index();
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _onUpdated(res, action) {
+
+                App.Event.emit('update:RoleCompleted', {
+                    res: res
+                });
+
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+                
+                App.Role.Service = this;
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+                
+
+                    this._index();
+
+                    App.Event.on('update:Role', (e) => this.update(e));
+                    App.Event.on('destroy:Role', (e) => this._destroy(e));
+                });
+            }
+
+        }
+
+        window.customElements.define(AppRoleService.is, AppRoleService);
+    </script>
+</dom-module>

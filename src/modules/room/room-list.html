@@ -1,0 +1,238 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/vaadin-material-theme/vaadin-grid.html">
+<link rel="import" href="../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../components/app-data-table.html">
+<link rel="import" href="../../../bower_components/vaadin-material-theme/vaadin-date-picker.html">
+<link rel="import" href="../../../bower_components/vaadin-date-picker/vaadin-date-picker.html">
+<link rel="import" href="../../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import" href="../../../bower_components/paper-search-input/paper-search-input.html">
+<link rel="import" href="../room/room-service.html">
+
+<dom-module id="app-room-list">
+    <template>
+        <style 
+            include="
+                iron-flex 
+                shared-styles 
+                iron-flex-alignment
+                app-data-table">
+            :host {
+                display: block;
+            }
+
+            paper-search-input{
+                --search-input-styles-base-color: #f4f3f8;
+                --search-input-styles-base-label-color: #63646d;
+                --search-height: 45px;
+                padding-top: 4px;
+            }
+        </style>
+
+      <section class="main-frame">
+            <main>
+                <div class="pad shadow">
+                    <section class="border-bottom pad">
+                        <h3 class="title-text">
+                            Rooms
+                            <small>
+                                List of all hotels.
+                            </small>
+                        </h3>
+                    </section>
+                    <section class="pad layout horizontal center-center">
+                        <!-- 
+                            Filter
+                        -->
+                        <div class="layout horizontal around-justified filters">
+                            <vaadin-date-picker placeholder="From">
+                            </vaadin-date-picker>
+                            
+                            <vaadin-date-picker placeholder="To">
+                            </vaadin-date-picker>
+                            
+                            <paper-search-input></paper-search-input>
+                        </div>
+                        
+                        <span class="flex"></span>
+                        <a href="/create-room" on-click="create">
+                            <paper-button accent rounded>
+                                + Add Room
+                            </paper-button>
+                        </a>
+                    </section>
+                    <!-- The array is set as the <vaadin-grid>'s "items" property -->
+                    <vaadin-grid 
+                        id="grid" 
+                        items="[[rooms]]"
+                        active-item="{{activeItem}}">
+
+                        <vaadin-grid-column flex-grow="0">
+                            <template class="header">
+                                <vaadin-grid-sorter path="created_at">
+                                    <div class="header-cell">
+                                         #
+                                    </div>
+                                </vaadin-grid-sorter>
+                            </template>
+                            <template>[[item.id]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column>
+                            <template class="header">Name</template>
+                            <template>[[item.name]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column>
+                            <template class="header">Hotel</template>
+                            <template>[[item.hotel.name]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Rates</template>
+                            <template>
+                            <p style="white-space: normal"><a href$="/room-rates/[[item.id]]">View Rates</a></p>
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Gallery</template>
+                            <template>
+                                <p style="white-space: normal"><a href="/gallery/room/[[item.id]]">(0) Uploads</a></p>
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Status</template>
+                            <template>
+                                <app-badge class$="[[ _computeStatusClass( item.active ) ]]">[[ _getStatus( item.active ) ]]</app-badge>
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Actions</template>
+                            <template>
+                                <div class="actions">
+                                    <paper-icon-button  icon="my-icons:edit" on-click="_edit" data="[[item]]"></paper-icon-button>
+                                    <paper-icon-button icon="my-icons:delete" on-click="_delete" data="[[item]]"></paper-icon-button>
+                                </div>
+                            </template>
+                        </vaadin-grid-column>
+
+                    </vaadin-grid>
+            </main>
+        </section>
+
+    </template>
+
+    <script>
+        /**
+         * `app-room-list` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppRoomList extends AppDataTable() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-room-list';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    rooms:{
+                        type: Array,
+                        statePath: 'rooms'
+                    }
+                };
+            }
+             static get actions() {
+                return {
+                    editRoom(data) {
+                        return {
+                            type: C.EDIT_ROOM,
+                            payload: data
+                        };
+                    }
+                };
+            }
+
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _delete(e) {
+                let node = Polymer.dom(e).localTarget;
+                this.selected = node.data;
+
+                event('confirmAction', {
+                    callback: this._destroy.bind(this),
+                    message: 'A warning message, with a function attached to the confirm button',
+                    type: 'DANGER'
+                })
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _destroy() {
+                event('destroy:Room', {
+                    data: this.selected
+                })
+            }
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _edit(e) {
+                let selected = Polymer.dom(e).localTarget.data;
+                App.Route.navigate(`/edit-room/${selected.id}`)
+                
+                //dispatch we are editing this guy
+                this.dispatch('editRoom', selected)
+
+            }
+            
+            create(e){
+                this.dispatch('editRoom', {})
+            }
+            
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    //Get me hotels service
+                    App.inject('Room.Service', 'app-room-service');
+                });
+            }
+
+        }
+
+        window.customElements.define(AppRoomList.is, AppRoomList);
+    </script>
+</dom-module>

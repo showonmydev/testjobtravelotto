@@ -1,0 +1,183 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-overlay-behavior/iron-overlay-behavior.html">
+
+<dom-module id="app-user-menu">
+    <template>
+        <style>
+            :host {
+                position: absolute;
+                top: 70px;
+                right: 16px;
+                background-color: #ffffff;
+                box-shadow: 0px 0px 15px 1px rgba(69, 65, 78, 0.2);
+                -webkit-border-radius: 4px;
+                -moz-border-radius: 4px;
+                -ms-border-radius: 4px;
+                -o-border-radius: 4px;
+                border-radius: 4px;
+                z-index: 1100;
+                border-top: 1px solid #3e83e6;
+                width: 245px;
+                visibility: hidden;
+                will-change: transform;
+                -webkit-transform: translate3d(0, 16px, 0);
+                transform: translate3d(0, 16px, 0);
+                transition-property:  -webkit-transform;
+                transition-property:  transform;
+                transition-duration: 0.2s;
+            }
+            
+            :host(.opened) {
+                visibility: visible;
+                -webkit-transform: translate3d(0, 0, 0);
+                transform: translate3d(0, 0, 0);
+            }
+
+            .user-menu__link-list{
+                padding: 16px 0;
+            }
+            
+            .user-menu__link{
+                display: block;
+                padding: 8px 18px;
+                font-size: 14px;
+                text-decoration: none;
+                color: #283240db;
+            }
+            .user-menu__link:hover{
+                color: #3e83e6;
+            }
+            .user-menu__link paper-button{
+                border-radius: 24px;
+                border: 1px solid #eee;
+                padding: 8px 19px;
+                text-transform: capitalize;
+                font-weight: 500;
+                color: #3e83e6;
+            }
+
+            .user-menu__link iron-icon{
+                margin-right: 8px;
+            }
+        </style>
+
+
+                <div id="user-menu">
+                    <!-- <div class="user-menu__user">
+                        <a router-link="" class="user-menu__profile-link" href="/profile">
+                            <span class="user-menu__name">Matarr Jobe</span>
+                            <span class="user-menu__edit-profile">Edit profile</span>
+                        </a>
+                    </div> -->
+                    <div class="user-menu__link-list">
+                        <a class="user-menu__link" href="/profile">
+                            <iron-icon icon="my-icons:person"></iron-icon>
+                            <span class="user-menu__link-text">My Profile</span>
+                            <!-- <span class="user-menu__unread">3 unread</span> -->
+                        </a>
+                        <a class="user-menu__link" href="/activity">
+                            <iron-icon icon="my-icons:activity"></iron-icon>
+                            <span class="user-menu__link-text">Activity</span>
+                        </a>
+                        <a class="user-menu__link" href="/messages">
+                            <iron-icon icon="my-icons:mail"></iron-icon>
+                            <span class="user-menu__link-text">Messages</span>
+                        </a>
+                        <a class="user-menu__link logout" href="/" onClick="logout()">
+                            <paper-button>Logout</paper-button>
+                        </a>
+                    </div>
+                </div>
+
+
+
+    </template>
+
+    <script>
+        /**
+         * `LowerCaseDashedName` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppUserMenu extends Polymer.mixinBehaviors(
+                [Polymer.IronOverlayBehaviorImpl], Polymer.Element) {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-user-menu';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+
+                };
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+            
+            _onCancel(e) {
+                // Don't restore focus when the overlay is closed after a mouse event
+                // if (e.detail instanceof MouseEvent) {
+                //     this.restoreFocusOnClose = false;
+                // }
+                
+                this.opened = false;
+            }
+
+              _renderOpened() {
+                this.restoreFocusOnClose = true;
+                this.backdropElement.style.display = 'none';
+                this.classList.add('opened');
+            }
+            _renderClosed() {
+                this.classList.remove('opened');
+            }
+
+             _transitionEnd(e) {
+                if (e.target !== this || e.propertyName !== 'transform') {
+                    return;
+                }
+                if (this.opened) {
+
+                } else {
+                    this._finishRenderClosed();
+                    this.backdropElement.style.display = '';
+                }
+             }
+             
+             refit() { }
+            notifyResize() { }
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                this.setAttribute('role', 'dialog');
+                this.setAttribute('aria-modal', 'true');
+                this.addEventListener('transitionend', (e) => this._transitionEnd(e));
+                this.addEventListener('iron-overlay-canceled', (e) => this._onCancel(e));
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    
+                });
+            }
+
+        }
+
+        window.customElements.define(AppUserMenu.is, AppUserMenu);
+    </script>
+</dom-module>

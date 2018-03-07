@@ -1,0 +1,275 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/vaadin-material-theme/vaadin-grid.html">
+<link rel="import" href="../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../components/app-data-table.html">
+<link rel="import" href="../../../bower_components/vaadin-material-theme/vaadin-date-picker.html">
+<link rel="import" href="../../../bower_components/vaadin-date-picker/vaadin-date-picker.html">
+<link rel="import" href="../../../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import" href="../../../bower_components/paper-search-input/paper-search-input.html">
+<link rel="import" href="../hotel/app-hotel-service.html">
+
+<dom-module id="app-hotel-list">
+    <template>
+        <style 
+            include="
+                iron-flex 
+                shared-styles 
+                iron-flex-alignment
+                app-data-table">
+            :host {
+                display: block;
+            }
+
+            paper-search-input{
+                --search-input-styles-base-color: #f4f3f8;
+                --search-input-styles-base-label-color: #63646d;
+                --search-height: 45px;
+                padding-top: 4px;
+            }
+        </style>
+
+        <section class="main-frame">
+            <main>
+                <div class="pad shadow">
+                    <section class="border-bottom pad">
+                        <h3 class="title-text">
+                            Hotels
+                            <small>
+                                List of all hotels.
+                            </small>
+                        </h3>
+                    </section>
+                    <section class="pad layout horizontal center-center">
+                        <!-- 
+                            Filter
+                        -->
+                        <div class="layout horizontal around-justified filters">
+                            <vaadin-date-picker placeholder="From">
+                            </vaadin-date-picker>
+                            
+                            <vaadin-date-picker placeholder="To">
+                            </vaadin-date-picker>
+
+                            
+                            <paper-search-input></paper-search-input>
+                        </div>
+                        
+                        
+
+                        <span class="flex"></span>
+                        <a href="/create-hotel">
+                            <paper-button accent rounded>
+                                + Add Hotel
+                            </paper-button>
+                        </a>
+                    </section>
+                    <!-- The array is set as the <vaadin-grid>'s "items" property -->
+                    <vaadin-grid 
+                        id="grid" 
+                        items="[[hotels]]"
+                        active-item="{{activeItem}}">
+
+                        <vaadin-grid-column flex-grow="0">
+                            <template class="header">
+                                <vaadin-grid-sorter path="created_at">
+                                    <div class="header-cell">
+                                         Date
+                                    </div>
+                                </vaadin-grid-sorter>
+                            </template>
+                            <template>[[item.created_at]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column>
+                            <template class="header">Name</template>
+                            <template>[[item.name]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column>
+                            <template class="header">Owner</template>
+                            <template>[[item.owner.name]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Location</template>
+                            <template>
+                            <p style="white-space: normal">[[ _getCountry( item.country, countries ) ]]</p>
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Stars</template>
+                            <template>
+                                <p style="white-space: normal">[[item.rating]]</p>
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Gallery</template>
+                            <template>
+                                <p style="white-space: normal"><a href$="/gallery/property/[[item.id]]">(0) Uploads</a></p>
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Status</template>
+                            <template>
+                                <app-badge class$="[[ _computeStatusClass( item.active ) ]]">[[ _getStatus( item.active ) ]]</app-badge>
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Actions</template>
+                            <template>
+                                <div class="actions">
+                                    <paper-icon-button  icon="my-icons:edit" on-click="_edit" data="[[item]]"></paper-icon-button>
+                                    <paper-icon-button icon="my-icons:delete" on-click="_delete" data="[[item]]"></paper-icon-button>
+                                </div>
+                            </template>
+                        </vaadin-grid-column>
+
+                    </vaadin-grid>
+            </main>
+        </section>
+    </template>
+
+    <script>
+        /**
+         * `hotels-list` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppHotelList extends AppDataTable() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-hotel-list';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+
+                    hotels: {
+                        statePath: 'hotels',
+                        type: Array   
+                    },
+
+                    countries: {
+                        type: Array,
+                        statePath: 'resources.countries'
+                    }
+                    
+                };
+            }
+
+            static get observers() {
+                return [];
+            }
+
+             static get actions() {
+                return {
+                    editHotel(data) {
+                        return {
+                            type: C.EDIT_HOTEL,
+                            payload: data
+                        };
+                    }
+                };
+            }
+
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _delete(e){
+                let node = Polymer.dom(e).localTarget;
+                this.selected = node.data;
+
+                App.Event.emit('confirmAction', {
+                    callback: this._destroy.bind(this),
+                    message: 'A warning message, with a function attached to the confirm button',
+                    type: 'DANGER'
+                })
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _destroy() {
+                App.Event.emit('destroy:Hotel', {
+                    data: this.selected
+                })
+            }
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _edit(e){
+                let selected = Polymer.dom(e).localTarget.data;
+                App.Route.navigate(`/edit-hotel/${selected.id}`)
+
+                //dispatch we are editing this guy
+                this.dispatch('editHotel', selected)
+
+            }
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _getCountry(code, countries){
+                return App.Countries.getNameFromCode(code, countries)
+            }
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+                this.page = 0;
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _refreshList() {
+                this.service.refresh();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+
+                    //Get me hotels service
+                   this.service = App.inject('Hotel.Service', 'app-hotel-service');
+
+                    App.Event.on('update:HotelCompleted', this._refreshList.bind(this))
+                });
+            }
+
+        }
+
+        window.customElements.define(AppHotelList.is, AppHotelList);
+    </script>
+</dom-module>

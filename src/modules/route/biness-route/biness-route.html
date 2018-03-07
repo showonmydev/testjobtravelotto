@@ -1,0 +1,171 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../../../bower_components/app-route/app-route.html">
+<link rel="import" href="../route.html">
+
+<dom-module id="biness-route">
+    <template>
+    
+        <app-location
+            route="{{route}}"
+            url-space-regex="^[[rootPath]]">
+        </app-location>
+
+        <app-route
+            route="[[route]]"
+            pattern="[[rootPath]]:page"
+            data="{{pageData}}"
+            tail="{{pageTail}}">
+        </app-route>
+
+        <app-route 
+            route="[[pageTail]]" 
+            pattern="/:slug" 
+            data="{{slugData}}" 
+            tail="{{slugTail}}">
+
+        <app-route 
+            route="{{slugTail}}" 
+            pattern="/:action" 
+            data="{{actionData}}">
+
+    </template>
+
+    <script>
+        /**
+         * `biness-route` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class BinessRoute extends AppComponent() {
+
+            static get properties() {
+                return {
+                    page: {
+                        type: String,
+                        reflectToAttribute: true,
+                        observer: '_pageChanged',
+                        notify: true
+                    },
+
+                    view: {
+                        type: String,
+                        reflectToAttribute: true,
+                        notify: true
+                    },
+
+                    routeData: Object,
+                    subroute: String,
+                    // This shouldn't be neccessary, but the Analyzer isn't picking up
+                    // Polymer.Element#rootPath
+                    rootPath: String,
+
+                    currentState:{
+                        type: Object,
+                        value: {}
+                    }
+                };
+            }
+
+            static get observers() {
+                return [
+                    '_routePageChanged(pageData.page)',
+                    '_routeSlugChanged(slugData.slug, pageData.page)',
+                    '_routeActionChanged(actionData.action, pageData.page)',
+                    '_stateChanged(currentState.*, route)',
+                    
+                ];
+            }
+
+            static get routes(){
+                return [
+                    { name: 'room-list', guard: '' },
+                    { name: 'create-room', guard: '', view: 'room-form' },
+                    { name: 'edit-room', guard: '', view: 'room-form' },
+                    { name: 'room-rates', guard: '' },
+                    { name: 'hotel-list', guard: ''},
+                    { name: 'create-hotel', guard: '', view: 'hotel-form' },
+                    { name: 'edit-hotel', guard: '', view: 'hotel-form' },
+                    { name: 'create-account', guard: '', view: 'account-form' },
+                    { name: 'edit-account', guard: '', view: 'account-form' },
+                    { name: 'amenity-list', guard: ''},
+                    { name: 'accounts', guard: ''},
+                    { name: 'property-facilities', guard: ''},
+                    { name: 'property-types', guard: ''},
+                    { name: 'property-extras', guard: ''},
+                    { name: 'roles', guard: '' },
+                    { name: 'dashboard', guard: '' },
+                    { name: 'gallery', guard: '' },
+                    { name: 'featured', guard: '' },
+                    { name: 'currency-list', guard: '' },
+                    { name: 'booking-list', guard: '' },
+                ]
+            }
+
+            static get actions() {
+                return {
+                    updateRoute(route) {
+                        return {
+                            type: C.UPDATE_ROUTE,
+                            payload: route
+                        };
+                    }
+                };
+            }
+
+            _routeSlugChanged(slug){
+                this.currentState.slug = slug;
+            }
+
+            _routeActionChanged(action){
+                this.currentState.action = action;
+            }
+
+            _routePageChanged(page) {
+                this.currentState.page = page;
+                // If no page was found in the route data, page will be an empty string.
+                // Default to 'view1' in that case.
+                this.page = page || 'dashboard';
+
+            }
+
+            _pageChanged(page){
+                let _view = null;
+
+                BinessRoute.routes.some((route) => {
+                    
+                    if (route.name === page) {
+
+                        //if page requires middleware run it
+                        //Take it from here
+                       return _view = route.view 
+                                ? route.view
+                                : route.name
+                    }
+                })
+
+                this.view = _view;
+                    
+                Polymer.AppLayout.scroll({ top: 0, behavior: 'silent' });
+            }
+
+            _stateChanged(state, route){
+                this.dispatch('updateRoute', state.value)
+            }
+
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'biness-route';
+            }
+
+
+        }
+
+        window.customElements.define(BinessRoute.is, BinessRoute);
+    </script>
+</dom-module>

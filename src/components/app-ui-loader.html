@@ -1,0 +1,97 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+
+<dom-module id="app-ui-loader">
+    <template>
+        <style>
+            :host {
+                display: flex;
+                position: absolute;
+                background-color: rgba(244, 244, 244, 0.4117647058823529);
+                width: 100%;
+                height: 100%;
+                top: 0;
+                justify-content: center;
+                align-items: center;
+            }
+
+            :host(:not([active])){
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .card{
+                padding: 16px 24px;
+                background-color: white;
+                box-shadow: 0 1px 15px 1px rgba(69,65,78,.08);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            paper-spinner-lite{
+                margin-left: 8px;
+                --paper-spinner-stroke-width: 1px;
+            }
+        </style>
+
+        <div class="card">
+            <span>Please Wait</span>
+            <paper-spinner-lite active$="[[active]]" class="thin"></paper-spinner-lite>
+        </div>
+
+    </template>
+
+    <script>
+        /**
+         * `app-loader` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppUiLoader extends Polymer.Element {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-ui-loader';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    active:{
+                        reflectToAttribute: true,
+                        type: Boolean
+                    }
+                };
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    
+                });
+            }
+
+        }
+
+        window.customElements.define(AppUiLoader.is, AppUiLoader);
+    </script>
+</dom-module>

@@ -1,0 +1,197 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/fullcalendar-calendar/fullcalendar-theme.html">
+<link rel="import" href="../../../bower_components/fullcalendar-calendar/fullcalendar-calendar.html">
+<link rel="import" href="../../components/app-alert.html">
+<link rel="import" href="room-rate-service.html">
+<link rel="import" href="room-rate-form.html">
+
+<dom-module id="app-room-rates">
+    <template>
+        <style
+            include="shared-styles
+                iron-flex-factors
+                biness-shady-input
+                iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                padding: 16px;
+            }
+
+            #calendar {
+                --fullcalendar: {
+                background: white;
+                }
+
+                --fullcalendar-borders: {
+                border-color: #eee;
+                }
+
+                --fullcalendar-day-numbers: {
+                    color: black;
+                }
+
+                --fullcalendar-day-headers: {
+                    color: black;
+                    font-weight: 500;
+                }
+
+                --fullcalendar-today: {
+                    background: #f4f3f8;
+                }
+
+                --fullcalendar-event: {
+                    border-color: #eee;
+                    margin: 6px 4px;
+                    background-color: #1bc3b3;
+                    color: white;
+                    cursor: pointer;
+                    padding: 6px 18px;
+                    border-radius: 6px;
+                    -webkit-box-shadow: 0px 1px 15px 1px rgba(69, 65, 78, 0.08);
+                    -moz-box-shadow: 0px 1px 15px 1px rgba(69, 65, 78, 0.08);
+                    box-shadow: 0px 1px 15px 1px rgba(69, 65, 78, 0.08);
+
+                }
+            }
+        </style>
+
+        <room-rate-form
+            id="editor">
+        </room-rate-form>
+
+        <room-rate-service id="service" data="{{ events }}"></room-rate-service>
+
+        <main class="content main-frame">
+            <header>
+                <div class="announcements">
+                    <app-alert
+                        title="Oopss!"
+                        id="alert"
+                        type="success"
+                        message="We are working here but you can poke around.">
+                    </app-alert>
+                </div>
+            </header>
+            <section class="card">
+                <fullcalendar-calendar 
+                    id="calendar"
+                    on-event-click="_editRate" 
+                    on-day-click="_create"
+                ></fullcalendar-calendar>
+            </section>
+        </main>
+        
+
+    </template>
+
+    <script>
+        /**
+         * `room-rates` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class RoomRates extends AppComponent() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-room-rates';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+
+                    selected: {
+                        value: {},
+                        type: Object
+                    }
+                };
+            }
+            
+            
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+
+                
+            }
+
+            _editRate(e){
+
+                let items = this.events.filter((item) => {
+                    return item.id === e.detail.event.id
+                });
+                
+                let data = items[0];
+
+                if(! data){
+                    return;
+                }
+
+                this.$.editor.data = {
+                    'id': data.id,
+                    'label': data.title,
+                    'from': data.start,
+                    'to': data.end,
+                    'standard_rate': data.standard_rate,
+                    'bb_rate': data.bb_rate,
+                    'bar_rate': data.bar_rate,
+                    'description': data.description
+                };
+                
+            }
+            
+            _transform(){
+
+            }
+
+            _create(e){
+
+                this.$.editor.data = {};
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                
+                this.$.calendar.options = {
+                    events: (start, end, timezone, callback) => {
+
+                    
+                        try {
+                            this.loading = true;
+                            this.$.service.callback = callback;
+                        
+
+                        } catch (error) {
+                            console.log('error occured while fetching');
+                            this.loading = false;
+
+                        }
+
+                    }
+                    
+                }
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    
+                });
+            }
+
+        }
+
+        window.customElements.define(RoomRates.is, RoomRates);
+    </script>
+</dom-module>

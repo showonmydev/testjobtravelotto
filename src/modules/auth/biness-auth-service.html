@@ -1,0 +1,228 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+<link rel="import" href="../../../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="biness-auth-service">
+    <template>
+
+        
+        <app-localstorage-document key="token" data="{{token}}"></app-localstorage-document>
+        <app-localstorage-document key="user" data="{{user}}"></app-localstorage-document>
+
+        <iron-ajax
+            id="tunnel"
+            method="POST"
+            content-type="application/json"
+            handle-as="json"></iron-ajax>
+    </template>
+
+    <script>
+        /**
+         * `biness-auth-service` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class BinessAuthService extends AppComponent() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'biness-auth-service';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    user: {
+                        type: Object,
+                        notify: true,
+                        observer: '_userChanged'
+                    }
+                };
+            }
+
+            static get observers() {
+                return [
+                    'tokenChanged(token)',
+                ]
+            }
+
+            static get actions() {
+                return {
+                    updateUser(user) {
+                        return {
+                            type: C.UPDATE_USER,
+                            payload: user
+                        };
+                    }
+                };
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+
+            tokenChanged(token) {
+                this.dispatchEvent(new CustomEvent('auth-changed', {
+                    detail: (token == true),
+                }));
+                this._updateUser(token);
+            }
+
+
+            loginWithEmailAndPassword(email, password) {
+                this.$.tunnel.method = 'POST';
+                this.$.tunnel.url = App.env.app_domain + '/oauth/token';
+                this.$.tunnel.body = this._getCredentials(email, password);
+                this._shouldReload = true;
+                
+                let request = this.$.tunnel.generateRequest();
+
+                request.completes.then((req) => {
+                    this.token = req.parseResponse();
+
+                }, (rejected) => {
+
+                    // Okay an error occured
+                    // lets notify everyone
+                    let req = rejected.request;
+                    let error = rejected.error;
+
+                    App.Event.emit('AuthErrorChanged', {
+                        detail:{
+                            message: 'The credentials were incorrect.'
+                        }
+                    });
+
+                });
+            }
+
+            _registerWithEmailAndPassword(name, email, password){
+
+                this.$.tunnel.method = "POST";
+                this.$.tunnel.url = App.env.app_domain + '/api/signup';
+                this.$.tunnel.body = {
+                    name: name,
+                    email: email,
+                    password: password
+                };
+
+                let request = this.$.tunnel.generateRequest();
+
+                request.completes.then((req) => {
+                    //this.token = req.parseResponse();
+                    this.loginWithEmailAndPassword(email, password);
+
+                }, (rejected) => {
+
+                    App.Event.emit('AuthErrorChanged', {
+                        detail: {
+                            message: 'The email already exists?'
+                        }
+                    });
+                    let req = rejected.request;
+                    let error = rejected.error;
+
+                });
+            }
+
+            _signout(){
+                this.tokenChanged(null);
+                this.token = null;
+                this.user = null;
+                window.location = '/login';
+            }
+
+            /**
+             *
+             *
+             */
+            _getCredentials(email, password) {
+                return JSON.stringify({
+                    'grant_type': 'password',
+                    'client_id': App.env.clientId,
+                    'client_secret': App.env.clientSecret,
+                    'username': email,
+                    'password': password,
+                    'scope': '',
+                });
+            }
+
+            _updateUser(token) {
+                if (token) {
+                    return this._fetchUser(token);
+                }
+                this.user = null;
+            }
+
+            _fetchUser(token) {
+
+                this.$.tunnel.url = App.env.app_domain + '/api/user';
+                this.$.tunnel.method = "GET";
+                this.$.tunnel.headers = {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + this.token.access_token
+                }
+
+
+                let request = this.$.tunnel.generateRequest();
+
+                request.completes.then((req) => {
+                    this.user = req.parseResponse();
+
+                    if(this._shouldReload){
+                        location.reload()
+                    }
+
+                }, (rejected) => {
+
+                    let req = rejected.request;
+                    let error = rejected.error;
+                    
+                    console.log(error, rejected);
+                    
+                    if(rejected.message.indexOf('401') >= 0){
+                        this.token = null;
+                        this.tokenChanged(null);
+                    }
+
+
+                });
+
+            }
+
+            _userChanged(user){
+                //Tell the store
+                this.dispatch('updateUser', user);
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                App.Event.on('signIn', (e) => this.loginWithEmailAndPassword(e.detail.email, e.detail.password));
+                App.Event.on('signUp', (e) => this._registerWithEmailAndPassword(e.detail.name, e.detail.email, e.detail.password));
+                App.Event.on('signOut', (e) => this._signout());
+                
+                Polymer.RenderStatus.afterNextRender(this, function () {
+                });
+            }
+
+        }
+
+        window.customElements.define(BinessAuthService.is, BinessAuthService);
+    </script>
+</dom-module>

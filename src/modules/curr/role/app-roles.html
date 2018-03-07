@@ -1,0 +1,274 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../bower_components/vaadin-material-theme/vaadin-grid.html">
+<link rel="import" href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../../components/app-data-table.html">
+<link rel="import" href="../../user/role/app-role-form.html">
+<link rel="import" href="../../user/role/app-role-service.html">
+
+<dom-module id="app-roles">
+    <template>
+        <style
+            include="
+                iron-flex 
+                shared-styles 
+                iron-flex-alignment
+                app-data-table">
+            :host {
+                display: block
+            }
+        </style>
+        
+        <!-- 
+            Form
+         -->
+        <app-role-form 
+            id="editor"
+            permissions="[[permissions]]"
+            ></app-role-form>
+         
+        <section class="main-frame">
+            <main>
+                <div class="pad shadow">
+                    <section class="border-bottom pad">
+                        <h3 class="title-text">
+                            Roles
+                            <small>
+                                List of all roles.
+                            </small>
+                        </h3>
+                    </section>
+                    <section class="pad layout horizontal">
+                        <span class="flex"></span>
+                        <a href="/roles/create">
+                            <paper-button accent rounded on-click="create">
+                                + Create
+                            </paper-button>
+                        </a>
+                    </section>
+                    <!-- The array is set as the <vaadin-grid>'s "items" property -->
+                    <vaadin-grid aria-label="Basic Binding Example" items="[[roles]]">
+
+                        <vaadin-grid-column width="50px" flex-grow="0">
+                            <template class="header">#</template>
+                            <template>[[ item.id ]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column>
+                            <template class="header">Name</template>
+                            <template>[[ item.display_name ]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Created at</template>
+                            <template>
+                                2 days ago
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Updated at</template>
+                            <template>
+                                2 days ago
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Status</template>
+                            <template>
+                                <app-badge 
+                                    class$="[[ _computeStatusClass( 'active' ) ]]">Active</app-badge>
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Actions</template>
+                            <template>
+                                <div class="actions">
+                                    <paper-icon-button icon="my-icons:edit" on-click="_edit" data="[[item]]"></paper-icon-button>
+                                    <paper-icon-button icon="my-icons:delete" on-click="_delete" data="[[item]]"></paper-icon-button>
+                                </div>
+                            </template>
+                        </vaadin-grid-column>
+
+                    </vaadin-grid>
+                </div>
+            </main>
+        </section>
+
+    </template>
+
+    <script>
+        /**
+         * `app-property-types` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppRoles extends AppDataTable() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-roles';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    page: {
+                        statePath: 'route.page',
+                        observer: '_routeChanged'
+                    },
+                    slug: {
+                        statePath: 'route.slug',
+                        observer: '_routeChanged'
+                    },
+                    roles:{
+                        statePath: 'roles'
+                    }
+                    
+                };
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _delete(e) {
+                let node = Polymer.dom(e).localTarget;
+                this.selected = node.data;
+
+                App.Event.emit('confirmAction', {
+                    callback: this._destroy.bind(this),
+                    message: 'A warning message, with a function attached to the confirm button',
+                    type: 'DANGER'
+                })
+            }
+            
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _destroy(){
+
+                App.Event.emit('destroyPropertyType', {
+                    data: this.selected
+                })
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _routeChanged() {
+                if(this._shouldShowEditor())
+                    return this.fetchSelected()
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            create(){
+                this.$.editor.data = {
+                    permissions: []
+                }
+            }
+            
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _edit(e){
+                let node = Polymer.dom(e).localTarget;
+                this.$.editor.data = node.data;
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string $msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            fetchSelected(){
+
+                if(this.slug == 'create'){
+                    return this.create()
+                }
+
+            }
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            _shouldShowEditor(){
+                return ( this.page == 'roles' && this.slug != null )
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _refreshList(){
+                this.$.db.refresh();
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            async getPermissions(){
+                try {
+
+                    const res = await App.Role.Service.getPermissions()
+                    this.permissions = res.response.data
+                    
+
+                } catch (error) {
+                    console.error('some error occured while fetching Permissions');
+
+                }
+            }
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    App.Event.on('update:RoleCompleted', this._refreshList.bind(this));
+                    
+                    //Get me roles service
+                    App.inject('Role.Service', 'app-role-service');
+
+                    
+                    this.getPermissions()
+                    
+                });
+            }
+
+        }
+
+        window.customElements.define(AppRoles.is, AppRoles);
+    </script>
+</dom-module>

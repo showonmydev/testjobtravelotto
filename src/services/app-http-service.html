@@ -1,0 +1,314 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+
+<dom-module id="app-http-service">
+    <template>
+        <iron-ajax 
+            id="ajax" 
+            auto="[[auto]]" 
+            method="[[method]]" 
+            body="[[body]]" 
+            content-type="[[contentType]]" 
+            url="[[_url]]" 
+            last-error="{{lastError}}"
+            reject-with-request="true"
+            params="[[params]]"
+            last-response="{{lastResponse}}" handle-as="[[handleAs]]" headers="[[headers]]"></iron-ajax>
+
+        <app-localstorage-document key="token" data="{{auth}}"></app-localstorage-document>
+    </template>
+
+    <script>
+
+        /**
+         * `app-http-request` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppHttpService extends Polymer.Element {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-http-service';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    /**
+                    * The URL target of the request.
+                    */
+                    url: {
+                        type: String
+                    },
+
+                    /**
+                    * An object that contains query parameters to be appended to the
+                    * specified `url` when generating a request. If you wish to set the body
+                    * content when making a POST request, you should use the `body` property
+                    * instead.
+                    */
+                    params: {
+                        type: Object,
+                        value: function () {
+                            return {};
+                        }
+                    },
+                    /**
+                     * The HTTP method to use such as 'GET', 'POST', 'PUT', or 'DELETE'.
+                     * Default is 'GET'.
+                     */
+                    method: {
+                        type: String,
+                        value: 'GET'
+                    },
+                    /**
+                     * HTTP request headers to send.
+                     *
+                     * Example:
+                     *
+                     *     <iron-ajax
+                     *         auto
+                     *         url="http://somesite.com"
+                     *         headers='{"X-Requested-With": "XMLHttpRequest"}'
+                     *         handle-as="json"></iron-ajax>
+                     *
+                     * Note: setting a `Content-Type` header here will override the value
+                     * specified by the `contentType` property of this element.
+                     */
+                    headers: {
+                        type: Object,
+                        value: function () {
+                            return {};
+                        }
+                    },
+                    /**
+                     * Content type to use when sending data. If the `contentType` property
+                     * is set and a `Content-Type` header is specified in the `headers`
+                     * property, the `headers` property value will take precedence.
+                     *
+                     * Varies the handling of the `body` param.
+                     */
+                    contentType: {
+                        type: String,
+                        value: 'application/json'
+                    },
+                    /**
+                     * Body content to send with the request, typically used with "POST"
+                     * requests.
+                     *
+                     * If body is a string it will be sent unmodified.
+                     *
+                     * If Content-Type is set to a value listed below, then
+                     * the body will be encoded accordingly.
+                     *
+                     *    * `content-type="application/json"`
+                     *      * body is encoded like `{"foo":"bar baz","x":1}`
+                     *    * `content-type="application/x-www-form-urlencoded"`
+                     *      * body is encoded like `foo=bar+baz&x=1`
+                     *
+                     * Otherwise the body will be passed to the browser unmodified, and it
+                     * will handle any encoding (e.g. for FormData, Blob, ArrayBuffer).
+                     *
+                     * @type (ArrayBuffer|ArrayBufferView|Blob|Document|FormData|null|string|undefined|Object)
+                     */
+                    body: {
+                        type: Object,
+                        value: null
+                    },
+
+                    /**
+                     * Specifies what data to store in the `response` property, and
+                     * to deliver as `event.detail.response` in `response` events.
+                     *
+                     * One of:
+                     *
+                     *    `text`: uses `XHR.responseText`.
+                     *
+                     *    `xml`: uses `XHR.responseXML`.
+                     *
+                     *    `json`: uses `XHR.responseText` parsed as JSON.
+                     *
+                     *    `arraybuffer`: uses `XHR.response`.
+                     *
+                     *    `blob`: uses `XHR.response`.
+                     *
+                     *    `document`: uses `XHR.response`.
+                     */
+                    handleAs: {
+                        type: String,
+                        value: 'json'
+                    },
+                    /**
+                     * Set the withCredentials flag on the request.
+                     */
+                    withCredentials: {
+                        type: Boolean,
+                        value: false
+                    },
+                    /**
+                     * Set the timeout flag on the request.
+                     */
+                    timeout: {
+                        type: Number,
+                        value: 0
+                    },
+                    /**
+                     * If true, automatically performs an Ajax request when either `url` or
+                     * `params` changes.
+                     */
+                    auto: {
+                        type: Boolean,
+                        value: false
+                    },
+                    /**
+                     * If true, error messages will automatically be logged to the console.
+                     */
+                    verbose: {
+                        type: Boolean,
+                        value: false
+                    },
+                    /**
+                     * The most recent request made by this iron-ajax element.
+                     */
+                    lastRequest: {
+                        type: Object,
+                        notify: true,
+                        readOnly: true
+                    },
+                    /**
+                     * True while lastRequest is in flight.
+                     */
+                    loading: {
+                        type: Boolean,
+                        notify: true,
+                        readOnly: true
+                    },
+                    /**
+                     * lastRequest's response.
+                     *
+                     * Note that lastResponse and lastError are set when lastRequest finishes,
+                     * so if loading is true, then lastResponse and lastError will correspond
+                     * to the result of the previous request.
+                     *
+                     * The type of the response is determined by the value of `handleAs` at
+                     * the time that the request was generated.
+                     *
+                     * @type {Object}
+                     */
+                    lastResponse: {
+                        type: Object,
+                        notify: true,
+                        readOnly: true
+                    },
+                    /**
+                     * lastRequest's error, if any.
+                     *
+                     * @type {Object}
+                     */
+                    lastError: {
+                        type: Object,
+                        notify: true,
+                        readOnly: true
+                    },
+
+                    /**
+                     * Length of time in milliseconds to debounce multiple automatically generated requests.
+                     */
+                    debounceDuration: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+                    /**
+                     * Prefix to be stripped from a JSON response before parsing it.
+                     *
+                     * In order to prevent an attack using CSRF with Array responses
+                     * (http://haacked.com/archive/2008/11/20/anatomy-of-a-subtle-json-vulnerability.aspx/)
+                     * many backends will mitigate this by prefixing all JSON response bodies
+                     * with a string that would be nonsensical to a JavaScript parser.
+                     *
+                     */
+                    jsonPrefix: {
+                        type: String,
+                        value: ''
+                    },
+                    /**
+                     * By default, iron-ajax's events do not bubble. Setting this attribute will cause its
+                     * request and response events as well as its iron-ajax-request, -response,  and -error
+                     * events to bubble to the window object. The vanilla error event never bubbles when
+                     * using shadow dom even if this.bubbles is true because a scoped flag is not passed with
+                     * it (first link) and because the shadow dom spec did not used to allow certain events,
+                     * including events named error, to leak outside of shadow trees (second link).
+                     * https://www.w3.org/TR/shadow-dom/#scoped-flag
+                     * https://www.w3.org/TR/2015/WD-shadow-dom-20151215/#events-that-are-not-leaked-into-ancestor-trees
+                     */
+                    bubbles: {
+                        type: Boolean,
+                        value: false
+                    },
+                    auth:{
+                        type: Object
+                    },
+                    routePrefix: String
+                };
+            }
+
+            static get observers() {
+                return [
+                    'urlChanged(url)',
+                    'authChanged(auth)'
+                ]
+            }
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+
+
+                // let setToken = () => {
+                //     this.authChanged(JSON.parse(window.localStorage.getItem('token')));
+                // }
+
+               //window.addEventListener('app-storage-changed', setToken);
+
+            }
+
+            authChanged(auth) {
+                if (!auth) {
+                    auth = {
+                        access_token: null
+                    }
+                }
+                this.headers = {
+                    Authorization: `Bearer ${auth.access_token}`,
+                    Accept: 'application/json'
+                };
+            }
+
+            urlChanged(url) {
+
+                this._url = (this.routePrefix != null)
+                    ? `${App.env.app_domain}/api/${this.routePrefix}/${url}`
+                    : `${App.env.app_domain}/api/${url}`
+            }
+
+            makeRequest() {
+                return this.$.ajax.generateRequest();
+            }
+
+        }
+
+        window.customElements.define(AppHttpService.is, AppHttpService);
+    </script>
+</dom-module>

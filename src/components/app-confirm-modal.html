@@ -1,0 +1,123 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<dom-module id="app-confirm-modal">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+             #modal{
+                width: 25vw;
+            }
+            #modal>.modal-info{
+                margin-top: 0;
+                padding: 24px;
+            }
+            .modal-info h1, .modal-info p {
+                color: white;
+            }
+            #modal.danger .modal-info{
+                background-image: -webkit-repeating-linear-gradient(135deg,#f04b51,#f04b51 24px,#f2545b 0,#f2545b 48px);
+                background-image: repeating-linear-gradient(135deg,#f04b51,#f04b51 24px,#f2545b 0,#f2545b 48px);
+            }
+            #modal.danger paper-button.confirm{
+                background: #eb4b54;
+                color: white;
+            }
+            #modal.happy .modal-info{
+                background-image: -webkit-repeating-linear-gradient(135deg,#1dbace,#00BCD4 24px,#0cc5dc 0,#00BCD4 48px);
+                background-image: repeating-linear-gradient(135deg,#1dbace,#00BCD4 24px,#0cc5dc 0,#00BCD4 48px);
+            }
+            #modal.happy paper-button.confirm{
+                background: #33c0d7;
+                color: white;
+            }
+            #modal.danger paper-button.cancel{
+                background: #eee;
+            }
+        </style>
+
+        <paper-dialog id="modal" opened$="[[opened]]" modal class="danger">
+            <div class="layout vertical modal-info">
+                <h1>Just checking</h1>
+                <p>[[message]]</p>
+            </div>
+            <div class="buttons">
+                <paper-button dialog-confirm autofocus class="confirm" on-click="confirm">Sure</paper-button>
+                <paper-button dialog-confirm autofocus class="cancel" on-click="reset">Nope</paper-button>
+            </div>
+        </paper-dialog>
+
+    </template>
+
+    <script>
+        /**
+         * `LowerCaseDashedName` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppConfirmModal extends Polymer.Element {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-confirm-modal';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    
+                };
+            }
+
+            confirm(){
+                this.callback();
+                this.reset();
+            }
+
+            reset(){
+                this.callback = null;
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                App.Event.on('confirmAction', ({message, callback, type}) => {
+
+                    this.callback = callback; // callback will be called if the user says yess!
+                    this.message = message;
+                    this.type = type; 
+
+                    this.$.modal.open();
+                })
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    
+                })
+            }
+
+        }
+
+        window.customElements.define(AppConfirmModal.is, AppConfirmModal);
+    </script>
+</dom-module>

@@ -1,0 +1,88 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner-lite.html">
+
+<dom-module id="biness-ajax-button">
+    <template>
+        <style>
+            :host {
+                display: block
+            }
+
+            [hidden] {
+                display: none;
+            }
+
+            paper-button {
+                @apply --paper-button
+            }
+
+            paper-spinner-lite {
+                --paper-spinner-color: white;
+            }
+        </style>
+
+
+        <paper-button raised disabled="[[loading]]">
+            <span hidden$="[[loading]]">
+                <slot></slot>
+            </span>
+            <template is="dom-if" if="[[loading]]">
+                <paper-spinner-lite active="[[loading]]"></paper-spinner-lite>
+            </template>
+        </paper-button>
+    </template>
+
+    <script>
+        /**
+         * `biness-ajax-button` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class BinessAjaxButton extends Polymer.Element {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'biness-ajax-button';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    loading: {
+                        type: Boolean
+                    }
+                };
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+                });
+            }
+
+        }
+
+        window.customElements.define(BinessAjaxButton.is, BinessAjaxButton);
+    </script>
+</dom-module>

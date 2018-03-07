@@ -1,0 +1,547 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../../bower_components/iron-form/iron-form.html">
+
+<link rel="import" href="../../components/biness-ajax-button.html">
+<link rel="import" href="../../components/biness-form.html">
+<link rel="import" href="../../components/biness-shady-input.html">
+<link rel="import" href="../../components/app-alert.html">
+<link rel="import" href="../../components/app-ui-loader.html">
+<link rel="import" href="room-service.html">
+<link rel="import" href="../hotel/app-hotel-service.html">
+
+<dom-module id="app-room-form">
+    <template>
+        <style
+            include="shared-styles
+                iron-flex-factors
+                biness-shady-input
+                iron-flex iron-flex-alignment">
+
+            :host {
+                display: block;
+                padding: 16px;
+            }
+
+            .inner{
+                min-height: 100px;
+            }
+
+            #form{
+                padding: 1em 4em;
+                max-width: 948px;
+                margin: 0 auto;
+            }
+            .wrap>*{
+                width: 33%;
+                margin: 1em 0;
+            }
+
+            .gallery{
+                margin: 2em 0;
+                background-color: #fafafa;
+                min-height: 150px;
+            }
+        </style>
+
+         <main class="content main-frame">
+            <header>
+                    <div class="announcements">
+                        <app-alert
+                            title="Oopss!"
+                            id="alert"
+                            type="success"
+                            message="We are working here but you can poke around.">
+                        </app-alert>
+                    </div>
+                </header>
+            <section class="card no--pad">
+                <header class="border-bottom page-header">
+                    <h3 class="title-text">
+                        Create Room
+                        <small>
+                            Creat a new Room.
+                        </small>
+                    </h3>
+                        <span class="flex"></span>
+                        <div>
+                            <paper-toggle-button checked="{{ data.active }}" class="accent">Active</paper-toggle-button>
+                        </div>
+                        <paper-menu-button>
+                            <paper-icon-button icon="my-icons:more_vert" slot="dropdown-trigger" alt="menu"></paper-icon-button>
+                            <paper-listbox slot="dropdown-content">
+                                <paper-item>Availability</paper-item>
+                                <paper-item>Rates</paper-item>
+                            </paper-listbox>
+                        </paper-menu-button>
+                </header>
+                <main>
+                    <iron-form id="form">
+                        <form method="get" action="#">
+                            <h1 class="form-title">Basic Information</h1>
+                            <form-group cols="3">
+                                <!-- Property Name -->
+                                <paper-input
+                                    label="Room Name:* (English)"
+                                    required 
+                                    type="text"
+                                    value="{{data.name}}"
+                                    error-message="Property name is required"
+                                    name="name">
+                                </paper-input>
+
+                                <!-- Property Name Local -->
+                                <paper-input
+                                    label="Room Name: (Thai)"
+                                    type="text"
+                                    value="{{data.name_local}}">
+                                </paper-input>
+
+                                <paper-input
+                                    label="Internal Name: (Optional)"
+                                    type="text"
+                                    value="{{data.name_internal}}">
+                                </paper-input>
+                                
+                            </form-group>
+                            
+                            <form-group cols="1">
+
+                                <paper-dropdown-menu 
+                                    label="Hotel:*"
+                                    error-message="please Select the Hotel"
+                                    required>
+                                    <paper-listbox 
+                                        slot="dropdown-content" 
+                                        selected="{{data.hotel_id}}"
+                                        attr-for-selected="name"
+                                        class="dropdown-content">
+                                        <template is="dom-repeat" items="[[hotels]]">
+                                            <paper-item name="[[item.id]]">[[item.name]]</paper-item>
+                                        </template>
+                                    </paper-listbox>
+                                </paper-dropdown-menu>
+                            </form-group>
+
+
+                            <form-group cols="3">
+                                <paper-input
+                                    label="Number of rooms:*"
+                                    type="number"
+                                    required
+                                    min="0"
+                                    value="{{data.rooms_count}}">
+                                </paper-input>
+
+                                <paper-input
+                                    label="Allotment:*"
+                                    type="number"
+                                    required
+                                    min="0"
+                                    value="{{data.allotment}}">
+                                </paper-input>
+
+                            </form-group>
+
+
+                            <h1 class="form-title">Room Rates</h1>
+                            <form-group cols="3">
+
+                                <paper-input
+                                    label="Standard Rate:*"
+                                    type="number"
+                                    required
+                                    min="0"
+                                    value="{{data.standard_rate}}">
+                                </paper-input>
+
+                                <paper-input
+                                    label="Bed & Breakfast Rate:"
+                                    type="number"
+                                    min="0"
+                                    value="{{data.bb_rate}}">
+                                </paper-input>
+
+                                <paper-input
+                                    label="Bar Rate:"
+                                    type="number"
+                                    min="0"
+                                    value="{{data.bar_rate}}">
+                                </paper-input>
+                            </form-group>
+
+                            <h1 class="form-title">Occupancy Settings</h1>
+                            <form-group cols="3">
+
+                                <paper-input
+                                    label="Max Adults:*"
+                                    type="number"
+                                    required
+                                    min="0"
+                                    value="{{data.max_adults}}">
+                                </paper-input>
+
+                                <paper-input
+                                    label="Max Children:"
+                                    type="number"
+                                    min="0"
+                                    value="{{data.max_children}}">
+                                </paper-input>
+
+                            </form-group>
+                            
+                            <form-group cols="3">
+
+                                 <paper-input
+                                    label="No. of Beds:*"
+                                    type="number"
+                                    required
+                                    min="0"
+                                    value="{{data.beds_count}}">
+                                </paper-input>
+
+                                <paper-input
+                                    label="No. of Extra Beds:"
+                                    type="number"
+                                    min="0"
+                                    value="{{data.extra_beds}}">
+                                </paper-input>
+
+                                <paper-input
+                                    label="Extra Bed Charges"
+                                    type="number"
+                                    value="{{data.extra_beds_rate}}">
+                                </paper-input>
+
+                            </form-group>
+
+                            <h1 class="form-title">Gallery & Amenities</h1>
+
+                            <!-- <section class="gallery">
+                            
+                            </section> -->
+                            
+                            <section class="app-accodion" id="accordion">
+                                    <div class="accordion-item">
+                                        <header class="accordion-header" toggle>
+                                            <paper-ripple></paper-ripple>
+                                            <h1>Amenities</h1>
+                                        </header>
+                                        <main class="accordion-content">
+                                            <div class="inner pad">
+                                                <iron-selector 
+                                                    attr-for-selected="id" 
+                                                    class="layout horizontal wrap pad"
+                                                    selected-values="[[data.amenities]]" 
+                                                    on-selected-values-changed="_updateSelected"
+                                                    selected-attribute="checked"
+                                                    multi>
+
+                                                        <template 
+                                                                is="dom-repeat" 
+                                                                items="[[ amenities.0 ]]" 
+                                                                as="facility">
+
+                                                            <paper-checkbox 
+                                                                id="[[ facility.id ]]">[[ facility.name ]]</paper-checkbox>
+
+                                                        </template>
+                                                    </iron-selector>
+                                               
+                                            </div>
+                                        </main>
+                                    </div>
+                            </section>
+                        </form>
+                    </iron-form>
+                </main>
+                <footer class="layout horizontal pad form-actions">
+                    <paper-button on-click="dismiss">Cancel</paper-button>
+                    <biness-ajax-button 
+                        class="light-btn"
+                        accent raised
+                        type="submit"
+                        loading="[[loading]]"
+                        on-click="submit">[[mode]]</biness-ajax-button>
+                </footer>
+            </section>
+
+            <!-- Loader -->
+            <app-ui-loader active$="[[loading]]"></app-ui-loader>
+    </template>
+
+    <script>
+        /**
+         * `app-room-form` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class RoomForm extends BinessForm() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-room-form';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+
+                    amenities: {
+                        type: Array,
+                        statePath: 'resources.property_facilities',
+                    },
+
+                    data: {
+                        type: Object,
+                        notify: true
+                    },
+
+                    mode: {
+                        computed: '_computeMode(data)'
+                    },
+
+                    hotels: {
+                        statePath: 'hotels',
+                        type: Array
+                    },
+                    
+                    route: {
+                        statePath: 'route',
+                        type: Object,
+                        observer: '_routeChanged'
+                    },
+
+                    activeRoom: {
+                        type: Object,
+                        statePath: 'rooms.activeRoom',
+                        observer: '_activeRoomChanged'
+                    },
+
+                };
+            }
+
+            static get observers() {
+                return [
+
+                ]
+            }
+            
+            static get actions() {
+                return {
+                    editRoom(data) {
+                        return {
+                            type: C.EDIT_ROOM,
+                            payload: data
+                        };
+                    }
+                };
+            }
+
+            _routeChanged(route) {
+                Polymer.RenderStatus.afterNextRender(this, () => {
+
+                    if (route.page == 'edit-room' && route.slug) {
+                        this.mode = 'edit';
+                        this._checkShouldRequestData();
+
+                    }
+
+                });
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            _checkShouldRequestData() {
+                if (!this.data.id) {
+
+                    this.loading = true;
+
+                    this.service.show(this.route.slug, (res, err) => {
+
+                        if (err) {
+                            //There was an error
+                            console.error('The space was not found or somehing')
+                            return;
+                        }
+                        this.loading = false;
+                        this.dispatch('editRoom', res)
+                    });
+                }
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            submit() {
+                if (this.$.form.validate()) {
+
+                    this.loading = true;
+
+                    event('update:Room', {
+                        data: this.data,
+                        mode: this.mode,
+                    });
+
+                }
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            initAccodion() {
+                //listen to all accodion toggles
+                let toggles = this.$.accordion.querySelectorAll('.accordion-header[toggle]');
+
+                toggles.forEach((toggler) => {
+                    toggler.addEventListener('click', (e) => {
+                        this.toggle(toggler);
+                    })
+                })
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeMode(data) {
+                return data && data.id ? 'UPDATE' : 'CREATE';
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            toggle(toggler) {
+
+                let node = toggler.nextElementSibling;
+
+                node.hasAttribute('active')
+                    ? node.removeAttribute('active')
+                    : node.setAttribute('active', true)
+            }
+
+             _updateSelected(e) {
+
+                const data = e.detail.value;
+                const _items = [];
+
+                if ((typeof data) == "Object") {
+
+                    const items = data.indexSplices[0]['object'];
+
+                    items.forEach((item) => _items.push(parseInt(item)))
+
+                    this.data._amenities = _items;
+                }
+
+
+            }
+
+            _activeRoomChanged(data) {
+                console.log(data);
+
+                if (data) {
+                    this.data = data
+                }
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _handleError({ request, error }) {
+
+                console.log(request.parseResponse())
+
+                this.loading = false;
+                this.$.alert.type = "danger"
+                this.$.alert.show()
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _onUpdateComplete({ result, error }) {
+                (error != null)
+                    ? this._handleError(error)
+                    : this._handleSuccess(result)
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _handleSuccess(result) {
+                App.Route.navigate('/rooms')
+                this.loading = false;
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+            
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                this.data = {
+                    amenities: []
+                };
+                
+                //Get me room service
+                this.service = App.inject('Room.Service', 'app-room-service');
+                App.inject('Hotel.Service', 'app-hotel-service');
+                
+
+                listen('update:RoomCompleted', this._onUpdateComplete.bind(this));
+
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    this.initAccodion()
+                    
+                });
+            }
+
+        }
+
+        window.customElements.define(RoomForm.is, RoomForm);
+    </script>
+</dom-module>

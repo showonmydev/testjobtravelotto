@@ -1,0 +1,228 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../services/app-http-service.html">
+
+
+<dom-module id="app-amenity-service">
+    <template>
+        <app-http-service id="tunnel" route-prefix="admin"></app-http-service>
+    </template>
+
+    <!-- 
+        Amenity Module
+     -->
+    <script>
+        App.Amenity = {};
+
+        App.reducers[C.UPDATE_AMENITIES] = (state, action) => {
+
+            let newState = Object.assign({}, state);
+            newState.amenities = action.payload;
+            return newState;
+        }
+
+    </script>
+
+    <script>
+        /**
+         * `localtribe-user-service` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AmenityService extends AppComponent(){
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-amenity-service';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    data: {
+                        type: Array,
+                        notify: true,
+                        value: []
+                    },
+                    endpoint: {
+                        type: String,
+                        value: 'amenity'
+                    },
+                };
+            }
+
+            static get actions() {
+                return {
+                    setAmenities(data){
+                        return {
+                            type: C.UPDATE_AMENITIES,
+                            payload: data
+                        };
+                    }
+                };
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _index() {
+                //Cursor
+                this.$.tunnel.url = this.endpoint;
+                this.$.tunnel.params = { page: 1 };
+                this.$.tunnel.method = 'GET';
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    let data = res.response.data;
+                    
+                   this.dispatch('setAmenities', data)
+
+                }, (rejected) => {
+
+                    // App.Event.emit('updatePropertyTypeCompletes', {
+                    //     error: rejected
+                    // });
+                    console.warn('The server responded with error from amenity service _index()');
+
+                });
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _update({data, mode}){
+
+                this.$.tunnel.params = {};
+                this.$.tunnel.body = data;
+                this.$.tunnel.method = this._computeMethod(mode)
+                this.$.tunnel.url = this._computeUrl(mode, data.id)
+
+                let request = this.$.tunnel.makeRequest();
+
+                 request.completes.then( (req) => {
+
+                    this._onUpdated( req.parseResponse() )
+                    
+                }, (rejected) => {
+                    
+                    // App.Event.emit('update:PropertyFacilityCompletes', {
+                    //    error: rejected
+                    // });
+                    
+                });
+                
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _destroy({data}){
+                if(!data.id) return;
+            
+                this.$.tunnel.params = {};
+                this.$.tunnel.body = data;
+                this.$.tunnel.method = 'DELETE'
+                this.$.tunnel.url = `${this.endpoint}/${data.id}`;
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    //let res = req.parseResponse()
+                    this.refresh()
+
+                    //event( we just deletd a property type)
+                }, (rejected) => {
+
+
+                });
+            }
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeMethod(mode){
+                return mode === 'CREATE' ? 'POST' : 'PATCH';
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeUrl(mode, id){
+                return (mode === 'CREATE')
+                    ? this.endpoint
+                    : `${this.endpoint}/${id}`
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            refresh(){
+                this.data = [];
+                this._index();
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _onUpdated(res, action){
+
+                this.refresh()
+
+                event('update:AmenityCompleted', {
+                    res: res
+                });
+                    
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+                
+                App.Amenity.Service = this;
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    
+                    this._index();
+                    // App.Event.on('update:PropertyFacility', (e) => this._update(e));
+                    // App.Event.on('destroy:PropertyFacility', (e) => this._destroy(e));
+                });
+            }
+
+        }
+
+        window.customElements.define(AmenityService.is, AmenityService);
+    </script>
+</dom-module>

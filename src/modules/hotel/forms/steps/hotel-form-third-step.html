@@ -1,0 +1,263 @@
+<link rel="import" href="../../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../../../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../../../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../../../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../../../../bower_components/paper-dropdown-menu/paper-dropdown-menu-light.html">
+<link rel="import" href="../../../../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../../../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../../../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../../../../bower_components/google-map/google-map.html">
+
+<link rel="import" href="../../../../components/biness-ajax-button.html">
+<link rel="import" href="../../../../components/biness-shady-input.html">
+<link rel="import" href="../../../../components/biness-form.html">
+<link rel="import" href="../../../../shared-styles.html">
+
+<dom-module id="hotel-form-third-step">
+    <template>
+        <style
+            include="shared-styles
+                iron-flex-factors
+                biness-shady-input
+                iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                
+            }
+
+            .inner{
+                min-height: 100px;
+            }
+            .wrap>*{
+                width: 33%;
+                margin: 1em 0;
+            }
+        </style>
+
+
+        <iron-form id="form">
+            <form method="get" action="#">
+                <h1 class="form-title">Property Facilitis</h1>
+
+                <section class="app-accodion" id="accordion">
+                    <template is="dom-repeat" items="[[ facilityTypes ]]" as="type">
+                        <div class="accordion-item">
+                            <header class="accordion-header" toggle>
+                                <paper-ripple></paper-ripple>
+                                <h1>[[type.name]]</h1>
+                            </header>
+                            <main class="accordion-content">
+                                <div class="inner pad">
+                                    <form-group row="3">
+                                        <div class="layout horizontal wrap" on-change="updateSelectedFacilities">
+                                            <template 
+                                                    is="dom-repeat" 
+                                                    items="[[ _getFacilityGroup( type.key, facilities ) ]]" 
+                                                    as="facility">
+
+                                                <paper-checkbox 
+                                                    id="[[ facility.id ]]" 
+                                                    on-click="_check"
+                                                    checked="[[ _computeChecked(facility) ]]">[[ facility.name ]]</paper-checkbox>
+
+                                            </template>
+                                        </div>
+                                    </form-group>
+                                </div>
+                            </main>
+                        </div>
+                    </template>
+                </section>
+            </form>
+        </iron-form>
+
+
+    </template>
+
+    <script>
+        /**
+         * `hotel-form-second-step` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class HotelFormThirdStep extends BinessForm() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'hotel-form-third-step';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    facilities:{
+                        type: Array,
+                        computed: '_computeFacilities(resources.property_facilities)',
+                        observer: 'updateSelectedFacilities'
+                    },
+                    data: {
+                        type: Object,
+                        notify: true,
+                        observer: '_dataChanged'
+                    }
+                };
+            }
+
+            static get observers(){
+                return [
+                    '_facilities(selectedFacilities, data.facilities)'
+                ]
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            _dataChanged(){
+                this.selectedFacilities = this.data && this.data.facilities || [];
+            }
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            initAccodion(){
+                //listen to all accodion toggles
+                let toggles = this.$.accordion.querySelectorAll('.accordion-header[toggle]');
+
+                toggles.forEach( (toggler) => {
+                    toggler.addEventListener('click', (e) => {
+                        this.toggle(toggler);
+                    })
+                })
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            updateSelectedFacilities() {
+                let items = [];
+
+                for (let group in this.facilities) {
+                    this.facilities[group].forEach(facility => {
+                        if(facility.checked) items.push(facility);
+                    })
+                }
+
+                this.selectedFacilities = this.selectedFacilities.concat(Object.keys(items));
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _facilities(selectedFacilities){
+                
+                this.data._facilities = this.selectedFacilities;
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeFacilities(data){
+                return data;
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeChecked(facility){
+                return this.selectedFacilities[facility.id]
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _check(e){
+                let node = Polymer.dom(e).localTarget
+                let val = parseInt(node.id);
+                let i = this._getIndexOf( this.selectedFacilities,  val);
+                
+                (i > 0) ?  this.selectedFacilities.pop( i ) : this.selectedFacilities.push( val )
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _getIndexOf(arr, id){
+                for (let i = 0; i < arr.length; ++i) {
+                    let entry = arr[i];
+                    if (entry === id) {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            toggle(toggler){
+                
+                let node = toggler.nextElementSibling;
+
+                node.hasAttribute('active')
+                    ? node.removeAttribute('active')
+                    : node.setAttribute('active', true)
+            }
+
+
+            _getFacilityGroup(key, facilities){
+                if(facilities)
+                return facilities[key]
+            }
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                this.form = this.$.form;
+
+                this.facilityTypes = [
+                    { key: 0, name: 'Common' },
+                    { key: 1, name: 'Accessebility' },
+                    { key: 2, name: 'Transport' }
+                ]
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    this.initAccodion();
+                });
+            }
+
+        }
+
+        window.customElements.define(HotelFormThirdStep.is, HotelFormThirdStep);
+    </script>
+</dom-module>

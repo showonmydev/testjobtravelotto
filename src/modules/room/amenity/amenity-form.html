@@ -1,0 +1,291 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../../components/biness-ajax-button.html">
+<link rel="import" href="../../../components/biness-form.html">
+<link rel="import" href="../../../components/biness-shady-input.html">
+<link rel="import" href="../../../components/app-alert.html">
+
+<dom-module id="app-amenity-form">
+    <template>
+        <style
+            include="shared-styles
+                iron-flex-factors
+                biness-shady-input
+                iron-flex iron-flex-alignment">
+            :host {}
+
+            #dialog {
+                display: block;
+                padding: 0 8px;
+                margin: 0;
+                width: 100%;
+                max-width: 900px;
+                margin: 0 auto;
+                background: var(--primary-background-color);
+                overflow: visible;
+            }
+
+            .announcements{
+                padding: 1em 0;
+            }
+
+            paper-dropdown-menu{
+                width: calc(100% - 2.6em);
+            }
+
+            paper-toggle-button{
+                font-weight: 500;
+            }
+
+            form>*{
+                padding: 0 1.3em;
+            }
+        </style>
+
+        <paper-dialog 
+            opened="[[_data]]" 
+            modal
+            on-iron-overlay-opened="patchOverlay"
+            id="dialog">
+
+            <main class="content main-frame">
+                <header>
+                    <div class="announcements">
+                        <app-alert
+                            title="Oopss!"
+                            id="alert"
+                            type="success"
+                            message="We are working here but you can poke around.">
+                        </app-alert>
+                    </div>
+                </header>
+                <section class="card no--pad">
+                    <header class="border-bottom page-header">
+                        <h3 class="title-text">
+                            Create Amenity
+                            <small>List of all Facilities.</small>
+                        </h3>
+                        <span class="flex"></span>
+                        <div>
+                            <paper-toggle-button 
+                                checked="{{ _data.active }}" class="accent">Active</paper-toggle-button>
+                        </div>
+                    </header>
+
+                    <iron-form id="form">
+                        <form method="get" action="#">
+                            <paper-input
+                                label="Name"
+                                required 
+                                value="{{ _data.name }}"
+                                error-message="Name field is required">
+                            </paper-input>
+
+                            <!-- Description -->
+                            <paper-textarea 
+                                rows="3"
+                                value="{{ _data.description }}"
+                                label="Description">
+                            </paper-textarea>
+
+                            <footer class="layout horizontal pad form-actions">
+                                <paper-button on-click="dismiss">Cancel</paper-button>
+                                <biness-ajax-button 
+                                    class="light-btn"
+                                    accent raised
+                                    type="submit"
+                                    loading="[[loading]]"
+                                    on-click="submit">[[mode]]</biness-ajax-button>
+                            </footer>
+                        </form>
+                    </iron-form>
+
+                </section>
+            </main>
+        </paper-dialog>
+        
+    </template>
+
+    <script>
+        /**
+         * `property-type-form` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AmenityForm extends BinessForm() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-amenity-form';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    _data: {
+                        type: Object,
+                        observer: '_dataChanged'
+                    },
+                    
+                    mode: {
+                        computed: '_computeMode(_data)'
+                    },
+
+                    redirectUrl: {
+                        type: String,
+                        value: '/amenity-list/'
+                    }
+                     
+                };
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _dataChanged(data){
+                this._checkShouldNavigateRoute();
+            }
+
+            //Hack can be extracted
+            //TODO
+            patchOverlay (e) {
+                if(e.target.withBackdrop) {
+                    e.target.parentNode.insertBefore(e.target.backdropElement, e.target);
+                }
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _checkShouldNavigateRoute(){
+                if(!this._data){
+                    App.Route.navigate(this.redirectUrl)
+                }
+                
+            }
+            
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeMode(data){
+                return data && data.id ? 'UPDATE' : 'CREATE';
+            }
+            
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            dismiss(){
+                this._data = null;
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            submit(){
+                 if (this.form.validate()) {
+                    this.loading = true;
+
+                   this.service._update({
+                        data: this._data,
+                        mode: this.mode,
+                    });
+
+                }
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _onUpdateComplete({result, error}){
+                (error != null) 
+                    ? this._handleError(error)
+                    : this._handleSuccess(result)
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _handleError({request, error}){
+                
+                console.log(request.parseResponse())
+
+                this.stopLoading()
+                this.$.alert.type = "danger";
+                this.$.alert.show()
+
+            }
+
+            stopLoading(){
+                this.loading = false;
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _handleSuccess(result){
+                this.stopLoading()
+                this.dismiss()
+                
+            }
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                this.form = this.$.form;
+                
+                this.service = App.inject('Amenity.Service', 'app-amenity-service')
+                
+                listen('update:AmenityCompleted', this._onUpdateComplete.bind(this))
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+
+                });
+            }
+
+        }
+
+        window.customElements.define(AmenityForm.is, AmenityForm);
+    </script>
+</dom-module>

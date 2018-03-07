@@ -1,0 +1,253 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../services/app-http-service.html">
+<link rel="import" href="../room/room.html">
+
+<dom-module id="room-rate-service">
+    <template>
+        <app-http-service id="tunnel" route-prefix="admin"></app-http-service>
+    </template>
+    <script>
+        /**
+         * `localtribe-user-service` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class RoomRateService extends AppComponent() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'room-rate-service';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+
+                    data: {
+                        type: Array,
+                        notify: true,
+                        value: []
+                    },
+
+                    endpoint: {
+                        type: String
+                    },
+
+                    route: {
+                        statePath: 'route',
+                        type: Object,
+                        observer: '_routeChanged'
+                    }
+                };
+            }
+
+            static get actions() {
+                return {
+
+                };
+            }
+
+            static get actions() {
+                return {
+                    // setRooms(data) {
+                    //     return {
+                    //         type: C.UPDATE_ROOMS,
+                    //         payload: data
+                    //     }
+                    // }
+                };
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _index() {
+                //Cursor
+                this.$.tunnel.url = this.endpoint;
+                this.$.tunnel.params = { page: 1 };
+                this.$.tunnel.method = 'GET';
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    this.data = res;
+                    this.callback(res)
+
+                }, (rejected) => {
+
+                    // App.Event.emit('update:HotelCompleted', {
+                    //     error: rejected
+                    // });
+
+                });
+            }
+            
+            _routeChanged(route) {
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+                    if (route.page == 'room-rates' && route.slug) {
+                        this.endpoint = `room/${this.route.slug}/rate`;
+                        this._index();
+                    }
+
+                });
+                
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _update({ data, mode }) {
+
+                this.$.tunnel.params = {};
+                this.$.tunnel.body = data;
+                this.$.tunnel.method = this._computeMethod(mode)
+                this.$.tunnel.url = this._computeUrl(mode, data.id)
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    this._onUpdated(res)
+
+                }, (rejected) => {
+
+                    event('update:RoomRateCompleted', { error: rejected });
+
+                });
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _destroy({ data }) {
+                if (!data.id) return;
+
+                this.$.tunnel.params = {};
+                this.$.tunnel.method = 'DELETE'
+                this.$.tunnel.url = `${this.endpoint}/${data.id}`;
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    this.refresh()
+
+                }, (rejected) => {
+
+
+                });
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            show(id, callback) {
+                if (!id) return;
+
+                this.$.tunnel.params = {};
+                this.$.tunnel.method = 'GET'
+                this.$.tunnel.url = `${this.endpoint}/${id}`;
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    callback(res, null);
+
+                }, (rejected) => {
+
+                    callback(null, rejected);
+                });
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeMethod(mode) {
+                return mode === 'CREATE' ? 'POST' : 'PATCH';
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeUrl(mode, id) {
+                return (mode === 'CREATE')
+                    ? this.endpoint
+                    : `${this.endpoint}/${id}`
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            refresh() {
+                this.data = [];
+                this._index();
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _onUpdated(res, action) {
+                event('update:RoomRateCompleted', { res: res });
+
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+
+                App.Room.Service = this;
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                listen('update:RoomRate', (e) => this._update(e));
+                // listen('destroy:Room', (e) => this._destroy(e));
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+                });
+            }
+
+        }
+
+        window.customElements.define(RoomRateService.is, RoomRateService);
+    </script>
+</dom-module>

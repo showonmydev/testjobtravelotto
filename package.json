@@ -1,0 +1,20 @@
+{
+  "name": "Travelotto",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "browser-sync": "^2.18.8",
+    "eslint": "^3.12.0",
+    "eslint-config-google": "^0.7.1",
+    "eslint-plugin-html": "^1.7.0"
+  },
+  "scripts": {
+    "dev": "polymer serve | npm run watch",
+    "lint": "eslint . --ext js,html --ignore-path .gitignore",
+    "test": "npm run lint && polymer test",
+    "watch": "browser-sync start --proxy localhost:8081 --files \"src/**/*.*, index.html, *.js\""
+  },
+  "dependencies": {
+    "firebase-functions": "^0.6.3",
+    "redux": "^3.7.2"
+  }
+}

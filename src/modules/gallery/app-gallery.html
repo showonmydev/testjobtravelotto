@@ -1,0 +1,189 @@
+<link rel="import" href="../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../../../bower_components/file-dropzone/file-dropzone.html">
+<link rel="import" href="dropzone.html">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.2.0/dropzone.js"></script>
+
+<dom-module id="app-gallery">
+    <template>
+        <style include="dropzone iron-flex-factors iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                padding: 16px;
+            }
+
+            iron-list {
+                padding-bottom: 16px;
+            }
+
+            .media{
+                height: 300px;
+                display: block;
+                padding:16px;
+            }
+
+            .media iron-image{
+                border-radius: 4px;
+            }
+
+            h1{
+                color: rgba(15, 15, 15, 0.7411764705882353);
+                padding-left: 14px;
+                font-size: 15px;
+            }
+
+            .grid{
+                display:grid;
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+
+            .dropzone{
+                min-height: 150px;
+                height: 100%;
+                background: #efefef;
+                box-shadow: 1px 1px 3px #909090a1;
+                padding: 20px 20px;
+                border: 0;
+            }
+        </style>
+
+        <section>
+
+            <app-localstorage-document key="token" data="{{auth}}"></app-localstorage-document>
+
+            <header>
+                <h1>Property Gallery</h1>
+            </header>
+            <main class="grid">
+                <div class="media">
+                    <form 
+                        method="post" 
+                        enctype="multipart/form-data"
+                        class="dropzone" 
+                        id="dropzone"></form>
+                        <section class="media-list">
+                            <ul class="layout horizontal media-list-items">
+                                <template is="dom-repeat" items="[[data.media]]">
+                                    <li>
+                                        <img src$="[[item.src]]">
+                                    </li>
+                                </template>
+                            </ul>
+                        </section>
+                    </div>
+                 <dom-repeat 
+                    items="[[items]]">
+
+                    <template>
+                        <div class="media"> 
+                            <template is="dom-if" if="[[!_showUploader(index)]]">
+                                <iron-image 
+                                    style="width:100%; height:100%; background-color: lightgray;" 
+                                    sizing="cover" 
+                                    preload 
+                                    fade 
+                                    src$="https://loremflickr.com/400/300?id=[[index]]"></iron-image>
+                            </template>
+                        </div>
+                    </template>
+
+                </dom-repeat>
+            </main>
+           
+        </section>
+
+    </template>
+
+    <script>
+        /**
+         * `app-gallery` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppGallery extends AppComponent() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-gallery';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    auth: {
+                        type: Object,
+                        observer: '_authChanged'
+                    }
+                };
+            }
+            
+            _showUploader(index){
+                return this.items.length === index++;
+            }
+
+            _authChanged(e) {
+                this.dropzone.headers = {
+                    'Authorization': `Bearer ${e.access_token}`,
+                    'Accept': 'application/json'
+                };
+            }
+            
+            initDropzone() {
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+                    const elem = this.querySelector('#dropzone');
+
+                    const self = this;
+
+                    this.dropzone = new Dropzone(this.$.dropzone, {
+
+                        url: `${App.env.app_domain}/api/media`,
+                        acceptedFiles: 'image/*',
+
+                        success(e, res) {
+                            if (!self.data.media_list) {
+                                self.data.media_list = [];
+                            }
+                            self.data.media_list.push(res);
+
+                        }
+
+                    });
+
+                });
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                this.items = [{},{},{},{},{},{}]
+                
+                this.initDropzone();
+            }
+            
+
+        }
+
+        window.customElements.define(AppGallery.is, AppGallery);
+    </script>
+</dom-module>

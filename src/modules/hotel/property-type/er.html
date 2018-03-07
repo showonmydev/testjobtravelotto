@@ -1,0 +1,205 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../services/app-http-service.html">
+
+
+<dom-module id="app-some-service">
+    <template>
+        <app-http-service id="tunnel"></app-http-service>
+    </template>
+    <script>
+        /**
+         * `localtribe-user-service` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class AppSomeService extends AppComponent() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'property-type-service';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    data: {
+                        type: Array,
+                        notify: true,
+                        value: []
+                    },
+                    endpoint: {
+                        type: String,
+                        value: 'some-endpoint'
+                    }
+                };
+            }
+
+            static get actions() {
+                return {
+
+                };
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _index() {
+                //Cursor
+                this.$.tunnel.url = this.endpoint;
+                this.$.tunnel.params = { page: 1 };
+                this.$.tunnel.method = 'GET';
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+
+                    let data = res.response.data;
+                    data.forEach(element => {
+                        this.push('data', element);
+                    });
+
+                }, (rejected) => {
+
+                    // App.Event.emit('updatePropertyTypeCompletes', {
+                    //     error: rejected
+                    // });
+
+                });
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _update({ data, mode }) {
+
+                this.$.tunnel.params = {};
+                this.$.tunnel.body = data;
+                this.$.tunnel.method = this._computeMethod(mode)
+                this.$.tunnel.url = this._computeUrl(mode, data.id)
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    this._onUpdated(res)
+
+                }, (rejected) => {
+
+                    App.Event.emit('updatePropertyTypeCompletes', {
+                        error: rejected
+                    });
+
+                });
+
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _destroy({ data }) {
+                if (!data.id) return;
+
+                this.$.tunnel.params = {};
+                this.$.tunnel.body = data;
+                this.$.tunnel.method = 'DELETE'
+                this.$.tunnel.url = `${this.endpoint}/${data.id}`;
+
+                let request = this.$.tunnel.makeRequest();
+
+                request.completes.then((req) => {
+
+                    let res = req.parseResponse()
+                    this.refresh()
+
+                    //event( we just deletd a property type)
+                }, (rejected) => {
+
+
+                });
+            }
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeMethod(mode) {
+                return mode === 'CREATE' ? 'POST' : 'PATCH';
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _computeUrl(mode, id) {
+                return (mode === 'CREATE')
+                    ? this.endpoint
+                    : `${this.endpoint}/${id}`
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            refresh() {
+                this.data = [];
+                this._index();
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _onUpdated(res, action) {
+
+                App.Event.emit('updateResourceCompletes', {
+                    res: res
+                });
+
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+                    this._index();
+                    App.Event.on('updateResource', (e) => this._update(e));
+                    App.Event.on('destroyResource', (e) => this._destroy(e));
+                });
+            }
+
+        }
+
+        window.customElements.define(AppSomeService.is, AppSomeService);
+    </script>
+</dom-module>

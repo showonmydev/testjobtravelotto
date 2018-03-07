@@ -1,0 +1,90 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<!-- shared styles for all views -->
+<dom-module id="biness-shady-input">
+    <template>
+        <style>
+            paper-input,
+            paper-textarea {
+                background: white;
+                margin: 16px 0;
+                border-bottom: 1px solid #bbb;
+                --paper-input-container-underline: {
+                    border-color: transparent;
+                }
+                ;
+                --paper-input-container: {
+                    padding-bottom: 0;
+                }
+                ;
+                --paper-input-container-color: #515356;
+                --paper-input-container-focus-color: var(--app-primary-color);
+
+                --paper-input-container-input: {
+                    font-size: 14px;
+                }
+                ;
+
+            }
+
+            paper-dropdown-menu{
+                border-bottom: 1px solid #bbb;
+                --paper-input-container-underline: {
+                    border-color: transparent;
+                }
+                --paper-dropdown-menu:{
+                   
+                }
+            }
+
+            biness-ajax-button {
+                --paper-button: {
+                    padding: 14px 70px;
+                    background: #0ba;
+                    border-radius: 24px;
+                    font-weight: 500;
+                    color: white;
+                }
+            }
+
+            form>*{
+                margin-bottom: 1em;
+            }
+
+            form-group{
+                display: flex;
+            }
+
+            form-group>*{
+                flex:1;
+                margin: 0 1.3em;
+            }
+
+            .form-title{
+                padding: 16px;
+                color: #2f3031;
+                font-size: 16px;
+                font-weight: 500;
+            }
+
+            .form-actions paper-button[accent]{
+                color: #fff;
+                background: #0ba;
+            }
+
+            .form-actions paper-button{
+                text-transform: capitalize;
+            }
+        </style>
+    </template>
+</dom-module>

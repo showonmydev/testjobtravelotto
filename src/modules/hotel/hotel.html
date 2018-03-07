@@ -1,0 +1,28 @@
+<!-- 
+    Hotel Reducers
+ -->
+<script>
+    
+    App.reducers[C.EDIT_HOTEL] = (state, action) => {
+
+        let newState = Object.assign({}, state);
+        newState.hotels.activeHotel = action.payload;
+        return newState;
+    }
+
+    App.reducers[C.UPDATE_HOTELS] = (state, action) => {
+
+            let newState = Object.assign({}, state);
+            newState.hotels = action.payload;
+            return newState;
+    }
+</script>
+
+<!-- 
+    Hotel Module
+ -->
+<script>
+    App.Hotel = {
+
+    }
+</script>

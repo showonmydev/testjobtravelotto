@@ -1,0 +1,38 @@
+<!-- 
+    User Reducers
+ -->
+<script>
+
+    App.reducers[C.UPDATE_USER] = (state, action) => {
+
+        let newState = Object.assign({}, state);
+        newState.user = action.payload;
+        return newState;
+    }
+    
+    App.reducers[C.UPDATE_ROLES] = (state, action) => {
+
+            let newState = Object.assign({}, state);
+            newState.roles = action.payload;
+            return newState;
+    }
+
+</script>
+
+<!-- 
+    User Module
+ -->
+<script>
+    App.User = {
+
+    }
+</script>
+
+<!-- 
+    Role Module
+ -->
+<script>
+    App.Role = {
+
+    }
+</script>

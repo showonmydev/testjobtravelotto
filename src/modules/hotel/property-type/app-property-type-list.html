@@ -1,0 +1,248 @@
+<link rel="import" href="../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../bower_components/vaadin-material-theme/vaadin-grid.html">
+<link rel="import" href="../../../../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../../hotel/property-type/app-property-type-form.html">
+<link rel="import" href="../../../components/app-data-table.html">
+<link rel="import" href="../../hotel/property-type/property-type-service.html">
+
+<dom-module id="app-property-type-list">
+    <template>
+        <style
+            include="
+                iron-flex 
+                shared-styles 
+                iron-flex-alignment
+                app-data-table">
+            :host {
+                display: block
+            }
+        </style>
+
+        <!-- Fetch an array of all the property types -->
+        <property-type-service
+            id="db"
+            data="{{ data }}"></property-type-service>
+
+        <!-- 
+            Form
+         -->
+        <app-property-type-form 
+            id="editor"
+            ></app-property-type-form>
+         
+        <section class="main-frame">
+            <main>
+                <div class="pad shadow">
+                    <section class="border-bottom pad">
+                        <h3 class="title-text">
+                            Property Types
+                            <small>
+                                List of all hotels.
+                            </small>
+                        </h3>
+                    </section>
+                    <section class="pad layout horizontal">
+                        <span class="flex"></span>
+                        <a href="/property-types/create">
+                            <paper-button accent rounded on-click="create">
+                                + Create
+                            </paper-button>
+                        </a>
+                    </section>
+                    <!-- The array is set as the <vaadin-grid>'s "items" property -->
+                    <vaadin-grid aria-label="Basic Binding Example" items="[[data]]">
+
+                        <vaadin-grid-column width="50px" flex-grow="0">
+                            <template class="header">#</template>
+                            <template>[[ item.id ]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column>
+                            <template class="header">Name</template>
+                            <template>[[ item.name ]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column>
+                            <template class="header">Created by</template>
+                            <template>[[ item.user_id ]]</template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Created at</template>
+                            <template>
+                                [[ item.created_at ]]
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Updated at</template>
+                            <template>
+                                [[ item.updated_at ]]
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Status</template>
+                            <template>
+                                <app-badge 
+                                    class$="[[ _computeStatusClass( item.active ) ]]">[[ _getStatus( item.active ) ]]</app-badge>
+                            </template>
+                        </vaadin-grid-column>
+
+                        <vaadin-grid-column width="150px">
+                            <template class="header">Actions</template>
+                            <template>
+                                <div class="actions">
+                                    <paper-icon-button icon="my-icons:edit" on-click="_edit" data="[[item]]"></paper-icon-button>
+                                    <paper-icon-button icon="my-icons:delete" on-click="_delete" data="[[item]]"></paper-icon-button>
+                                </div>
+                            </template>
+                        </vaadin-grid-column>
+
+                    </vaadin-grid>
+                </div>
+            </main>
+        </section>
+
+    </template>
+
+    <script>
+        /**
+         * `app-property-types` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class PropertyTypeList extends AppDataTable() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'app-property-type-list';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    page: {
+                        statePath: 'route.page',
+                        observer: '_routeChanged'
+                    },
+                    slug: {
+                        statePath: 'route.slug',
+                        observer: '_routeChanged'
+                    }
+                };
+            }
+
+            /**
+            * @desc Opens editor to create a new record
+            * Will set the _data prop on $editor to {}
+            */
+            create() {
+                this.$.editor._data = {}
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param Object e - the message to be displayed
+            */
+            _edit(e) {
+                this.$.editor._data = this._getSelected(e);
+            }
+
+            /**
+            * @desc opens a modal window to confirm delete action
+            * @event confirmAction - Fires confirm action event
+            * @return bool - success or failure
+            */
+            _delete(e) {
+                this.selected = this._getSelected(e);
+                App.Event.emit('confirmAction', {
+                    callback: this._processDelete.bind(this),
+                    message: 'A warning message, with a function attached to the confirm button',
+                    type: 'DANGER'
+                })
+            }
+            
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _getSelected(e){
+                let node = Polymer.dom(e).localTarget;
+                return node.data;
+            }
+
+            /**
+            * @desc Will delete the selected item
+            * @event destroy:ProperyType - Fires destroy event
+            */
+            _processDelete(){
+                App.Event.emit('destroy:PropertyType', {
+                    data: this.selected
+                })
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            _routeChanged() {
+                if(this._shouldShowEditor())
+                    return this.fetchSelected()
+            }
+
+            /**
+            * @desc opens a modal window to display a message
+            * @param string $msg - the message to be displayed
+            * @return bool - success or failure
+            */
+            fetchSelected(){
+
+                if(this.slug == 'create'){
+                    return this.create()
+                }
+                //TODO Fetch Selected
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            _shouldShowEditor(){
+                return ( this.page == 'property-types' && this.slug != null )
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+
+                });
+            }
+
+        }
+
+        window.customElements.define(PropertyTypeList.is, PropertyTypeList);
+    </script>
+</dom-module>

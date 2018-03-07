@@ -1,0 +1,240 @@
+<link rel="import" href="../../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../../../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../../../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../../../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../../../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../../../../bower_components/paper-dropdown-menu/paper-dropdown-menu-light.html">
+<link rel="import" href="../../../../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../../../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../../../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../../../../bower_components/google-map/google-map.html">
+<link rel="import" href="../../../../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../../../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../../../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../../../../bower_components/paper-input-location/paper-input-location.html">
+
+<link rel="import" href="../../../../components/biness-ajax-button.html">
+<link rel="import" href="../../../../components/biness-shady-input.html">
+<link rel="import" href="../../../../components/biness-form.html">
+<link rel="import" href="../../../../shared-styles.html">
+
+<dom-module id="hotel-form-second-step">
+    <template>
+        <style
+            include="shared-styles
+                iron-flex-factors
+                biness-shady-input
+                iron-flex iron-flex-alignment">
+            :host {
+                display: block;
+                
+            }
+
+            google-map {
+                height: 300px;
+            }
+
+        </style>
+
+        <section>
+            <iron-form id="form">
+                <form method="get" action="#">
+                    
+                    <google-map fit-to-markers="true" latitude="{{ data.latitude }}" longitude="{{ data.longitude }}" api-key="AIzaSyCvBUCyhjmJvkQtfG9Z9lakPZmRYTTVvZ4">
+                        <google-map-marker latitude="{{ data.latitude }}" longitude="{{ data.longitude }}" draggable="true"></google-map-marker>
+                    </google-map>
+                    
+                    <h1 class="form-title">Property Address</h1>
+
+                    <form-group cols="1">
+                        <paper-input-location 
+                            latitude="{{ data.latitude }}" 
+                            longitude="{{ data.longitude }}"
+                            maps-api-key="AIzaSyCvBUCyhjmJvkQtfG9Z9lakPZmRYTTVvZ4" 
+                            label="Where?"></paper-input-location>
+                    </form-group>
+
+                    <form-group cols="3">
+
+                        <!-- Country -->
+                        <paper-dropdown-menu 
+                            label="Country:*"
+                            error-message="please Select the space type"
+                            required>
+                            <paper-listbox 
+                                slot="dropdown-content" 
+                                selected="{{data.country}}"
+                                attr-for-selected="name"
+                                class="dropdown-content">
+                                <template is="dom-repeat" items="[[resources.countries]]">
+                                    <paper-item name="[[item.code]]">[[item.name]]</paper-item>
+                                </template>
+                            </paper-listbox>
+                        </paper-dropdown-menu>
+
+                        <!-- State / Province -->
+                        <paper-input
+                            label="State/Province:*"
+                            required 
+                            type="text"
+                            value="{{data.state}}"
+                            error-message="Property name is required">
+                        </paper-input>
+
+                        <!-- City -->
+                        <paper-input
+                            label="City:*"
+                            type="text"
+                            value="{{ data.city }}">
+                        </paper-input>
+
+                    </form-group>
+
+                    <form-group cols="3">
+
+                        <!-- Postal code -->
+                        <paper-input
+                            label="Zip / Postal Code:*"
+                            required 
+                            type="text"
+                            value="{{ data.zip_code }}"
+                            error-message="Zip code is required">
+                        </paper-input>
+
+                        <!-- Address -->
+                        <paper-input
+                            label="Street Address:*"
+                            required 
+                            type="text"
+                            value="{{ data.address }}"
+                            error-message="Address is required">
+                        </paper-input>
+                    </form-group>
+
+                    <!-- 
+                        Address In Thai
+                     -->
+                    <h1 class="form-title">Address in Thai</h1>
+                    <form-group cols="2">
+                        <!-- State Local -->
+                        <paper-input
+                            label="State/Province:"
+                            type="text"
+                            value="{{ data.state_local }}"
+                            error-message="Property name is required">
+                        </paper-input>
+
+                        <!-- City Local -->
+                        <paper-input
+                            label="City:"
+                            type="text"
+                            value="{{ data.city_local }}">
+                        </paper-input>
+
+                    </form-group>
+
+                    <form-group cols="3">
+
+                        <!-- Zip code Local -->
+                        <paper-input
+                            label="Zip / Postal Code:"
+                            type="text"
+                            value="{{ data.zip_code_local }}">
+                        </paper-input>
+
+                        <!-- Address Local -->
+                        <paper-input
+                            label="Street Address:"
+                            type="text"
+                            value="{{ data.address_local }}">
+                        </paper-input>
+                    </form-group>
+
+                    <h1 class="form-title">Meta Information</h1>
+                    <form-group cols="1">
+
+                        <!-- Meta Title -->
+                        <paper-input
+                            label="Title:"
+                            value="{{ data.meta_title }}"
+                            type="text">
+                        </paper-input>
+                    </form-group>
+
+                     <form-group cols="1">
+                        <!-- Meta keywords -->
+                        <paper-input
+                            label="Keywords:"
+                            type="text">
+                        </paper-input>
+                    </form-group>
+                    
+                     <form-group cols="1">
+                        <paper-textarea 
+                            value="{{ data.meta_description }}"
+                            label="Description:"
+                            rows="5"></paper-textarea>
+                    </form-group>
+
+                    
+                </form>
+        </iron-form>
+        </section>
+
+    </template>
+
+    <script>
+        /**
+         * `hotel-form-second-step` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class HotelFormSecondStep extends BinessForm() {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'hotel-form-second-step';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    data:{
+                        type: Object,
+                        notify: true
+                    }
+                };
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+                this.form = this.$.form;
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    
+                });
+            }
+
+        }
+
+        window.customElements.define(HotelFormSecondStep.is, HotelFormSecondStep);
+    </script>
+</dom-module>
